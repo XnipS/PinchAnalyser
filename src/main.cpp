@@ -19,7 +19,6 @@ int main(int argc, char *args[]) {
 
   while (engine->Running()) {
     frameStart = SDL_GetTicks();
-    engine->Events();
     engine->Update();
     engine->Render();
 
