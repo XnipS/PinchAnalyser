@@ -25,18 +25,18 @@ int main(int argc, char *args[]) {
   while (engine->Running()) {
     frameStart = SDL_GetTicks();
     fengine->Update();
-    float pixels[500 * 500 * 3];
+    float pixels[FB_SIZE * FB_SIZE * 3];
     float *test = fengine->SandToColour(pixels);
     engine->UpdateImage(test);
     engine->Update();
     engine->Render();
 
     currentTickTime = SDL_GetTicks() - frameStart;
-    if (RE_TICKRATE_TIME > currentTickTime) {
-      SDL_Delay(RE_TICKRATE_TIME - currentTickTime);
+    if (FB_TICKRATE_TIME > currentTickTime) {
+      SDL_Delay(FB_TICKRATE_TIME - currentTickTime);
     } else {
       std::cout << "Tickrate lagging: ";
-      std::cout << (currentTickTime - RE_TICKRATE_TIME);
+      std::cout << (currentTickTime - FB_TICKRATE_TIME);
       std::cout << "ms behind!" << std::endl;
     }
   }

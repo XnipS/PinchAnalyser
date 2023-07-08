@@ -3,34 +3,35 @@
 #include <cstddef>
 #include <cstdio>
 
+#include "../include/core.h"
 #include "../include/renderEngine.h"
 
 fluidEngine::fluidEngine(){};
 fluidEngine::~fluidEngine(){};
 void fluidEngine::AddSandAtPos(int x, int y) { sand[x][y] = true; };
 void fluidEngine::Start() {
-  for (int x = 0; x < 500; x++) {
-    for (int y = 0; y < 500; y++) {
+  for (int x = 0; x < FB_SIZE; x++) {
+    for (int y = 0; y < FB_SIZE; y++) {
       sand[x][y] = false;
     }
   }
   printf("Fluid Initialised\n");
 };
 void fluidEngine::Update() {
-  for (int x = 0; x < 500; x++) {
-    for (int y = 0; y < 500; y++) {
+  for (int x = 0; x < FB_SIZE; x++) {
+    for (int y = 0; y < FB_SIZE; y++) {
       if (y != 0) {
-        if (sand[499 - x][499 - y]) {
+        if (sand[(FB_SIZE - 1) - x][(FB_SIZE - 1) - y]) {
           // printf("move!");
-          sand[499 - x][499 - y] = false;
-          sand[499 - x][499 - y + 1] = true;
+          sand[(FB_SIZE - 1) - x][(FB_SIZE - 1) - y] = false;
+          sand[(FB_SIZE - 1) - x][(FB_SIZE - 1) - y + 1] = true;
         }
       }
     }
   }
 };
 float* fluidEngine::SandToColour(float colours[]) {
-  int w = 500, h = 500;
+  int w = FB_SIZE, h = FB_SIZE;
   for (int x = 0; x < (w); x++) {
     for (int y = 0; y < (h); y++) {
       Colour3 col;

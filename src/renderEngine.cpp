@@ -27,8 +27,8 @@ ImGuiIO io;
 ImVec4 clear_color = ImVec4(0.45f, 0.55f, 0.60f, 1.00f);
 
 GLuint my_image_texture = 0;
-int my_image_width = 500;
-int my_image_height = 500;
+int my_image_width = FB_SIZE;
+int my_image_height = FB_SIZE;
 
 // Simple helper function to load an image into a OpenGL texture with common
 // settings
@@ -148,7 +148,7 @@ void renderEngine::Update() {
   // Imgui goes here
   ImGui::Begin("Fluidised Bed Simulator");
   ImGui::Text("Size = %d x %d. Tickrate = %d. Tick = %d.", my_image_width,
-              my_image_height, RE_TARGET_TICKRATE, tick);
+              my_image_height, FB_TARGET_TICKRATE, tick);
   ImGui::Image((void*)(intptr_t)my_image_texture,
                ImVec2(my_image_width, my_image_height));
   ImGui::End();

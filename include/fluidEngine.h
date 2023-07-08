@@ -1,6 +1,8 @@
 #pragma once
 #include <vector>
 
+#include "core.h"
+
 class fluidEngine {
  public:
   fluidEngine();
@@ -11,5 +13,5 @@ class fluidEngine {
   float* SandToColour(float colours[]);
 
  private:
-  bool sand[500][500];  // TODO
+  bool sand[FB_SIZE][FB_SIZE];  // TODO
 };
