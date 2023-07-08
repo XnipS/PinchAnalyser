@@ -8,8 +8,7 @@ class renderEngine {
   renderEngine();
   ~renderEngine();
 
-  void Initialise(const char *title, int xpos, int ypos, int w, int h,
-                  bool fullscreen);
+  void Initialise(const char *title, int w, int h);
 
   void Update();
   void Render();

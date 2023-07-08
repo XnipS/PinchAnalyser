@@ -15,7 +15,7 @@ int currentTickTime;
 int main(int argc, char *args[]) {
   engine = new renderEngine();
 
-  engine->Initialise("Fluidised Bed Engine", 0, 0, 800, 640, false);
+  engine->Initialise("Fluidised Bed Engine", 800, 640);
 
   while (engine->Running()) {
     frameStart = SDL_GetTicks();
