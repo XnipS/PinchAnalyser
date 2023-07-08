@@ -1,9 +1,12 @@
 #include "../include/renderEngine.h"
 
 #include <GL/gl.h>
+#include <GL/glext.h>
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_events.h>
 #include <SDL2/SDL_video.h>
+#define STB_IMAGE_IMPLEMENTATION
+#include <stb/stb_image.h>
 
 #include <cstddef>
 #include <iostream>
@@ -18,6 +21,49 @@ SDL_Window* window;
 SDL_GLContext gl_context;
 ImGuiIO io;
 ImVec4 clear_color = ImVec4(0.45f, 0.55f, 0.60f, 1.00f);
+
+GLuint my_image_texture = 0;
+int my_image_width = 32;
+int my_image_height = 32;
+
+// Simple helper function to load an image into a OpenGL texture with common
+// settings
+bool LoadTextureFromFile(const char* filename, GLuint* out_texture,
+                         int* out_width, int* out_height) {
+  // Load from file
+  int image_width = 0;
+  int image_height = 0;
+  unsigned char* image_data =
+      stbi_load(filename, &image_width, &image_height, NULL, 4);
+  if (image_data == NULL) return false;
+
+  // Create a OpenGL texture identifier
+  GLuint image_texture;
+  glGenTextures(1, &image_texture);
+  glBindTexture(GL_TEXTURE_2D, image_texture);
+
+  // Setup filtering parameters for display
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S,
+                  GL_CLAMP_TO_EDGE);  // This is required on WebGL for non
+                                      // power-of-two textures
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);  // Same
+
+  // Upload pixels into texture
+#if defined(GL_UNPACK_ROW_LENGTH) && !defined(__EMSCRIPTEN__)
+  glPixelStorei(GL_UNPACK_ROW_LENGTH, 0);
+#endif
+  glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, image_width, image_height, 0, GL_RGBA,
+               GL_UNSIGNED_BYTE, image_data);
+  stbi_image_free(image_data);
+
+  *out_texture = image_texture;
+  *out_width = image_width;
+  *out_height = image_height;
+
+  return true;
+}
 
 void renderEngine::Initialise(const char* title, int w, int h) {
   // SDL Attributes
@@ -42,6 +88,25 @@ void renderEngine::Initialise(const char* title, int w, int h) {
   ImGui_ImplSDL2_InitForOpenGL(window, gl_context);
   ImGui_ImplOpenGL3_Init();
   isRunning = true;
+
+  float pixels[my_image_width * my_image_height * 3];
+  for (int x = 0; x < (my_image_width); x++) {
+    for (int y = 0; y < (my_image_height); y++) {
+      pixels[(y * my_image_width * 3) + (x * 3)] = 1;
+      pixels[(y * my_image_width * 3) + (x * 3) + 1] = 0;
+      pixels[(y * my_image_width * 3) + (x * 3) + 2] = 0;
+    }
+  }
+  GLuint tex;
+  glGenTextures(1, &tex);
+  glBindTexture(GL_TEXTURE_2D, tex);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+  glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, my_image_width, my_image_height, 0,
+               GL_RGB, GL_FLOAT, pixels);
+  glBindTexture(GL_TEXTURE_2D, 0);
+
+  my_image_texture = tex;
 }
 
 void renderEngine::Update() {
@@ -58,10 +123,20 @@ void renderEngine::Update() {
       isRunning = false;
   }
 
-  // Start the ImGui frame
+  //  Start the ImGui frame
   ImGui_ImplOpenGL3_NewFrame();
   ImGui_ImplSDL2_NewFrame();
   ImGui::NewFrame();
+
+  // Imgui goes here
+
+  // ImGui::ShowMetricsWindow();
+  ImGui::Begin("OpenGL Texture Test");
+  ImGui::Text("pointer = %u", my_image_texture);
+  ImGui::Text("size = %d x %d", my_image_width, my_image_height);
+  ImGui::Image((void*)(intptr_t)my_image_texture,
+               ImVec2(my_image_width, my_image_height));
+  ImGui::End();
 }
 
 void renderEngine::Render() {

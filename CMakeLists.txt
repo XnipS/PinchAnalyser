@@ -20,6 +20,7 @@ file(GLOB IMGUI_GLOB
 )
 INCLUDE_DIRECTORIES(
     ${IMGUI_PATH}
+	"/home/user/libs/stb"
 )
 add_library(imgui STATIC ${IMGUI_GLOB})
 target_link_libraries(imgui SDL2)
