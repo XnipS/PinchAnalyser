@@ -25,6 +25,9 @@ int main(int argc, char *args[]) {
   while (engine->Running()) {
     frameStart = SDL_GetTicks();
     fengine->Update();
+    float pixels[500 * 500 * 3];
+    float *test = fengine->SandToColour(pixels);
+    engine->UpdateImage(test);
     engine->Update();
     engine->Render();
 

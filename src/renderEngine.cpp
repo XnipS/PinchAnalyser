@@ -7,6 +7,8 @@
 #include <SDL2/SDL_video.h>
 
 #include <cstdio>
+
+#include "../include/core.h"
 #define STB_IMAGE_IMPLEMENTATION
 #include <stb/stb_image.h>
 
@@ -81,7 +83,7 @@ void renderEngine::FloodImage(Colour3 col) {
 }
 
 void renderEngine::UpdateImage(float colours[]) {
-  printf("Image updated!\n");
+  // printf("Image updated!\n");
   GLuint tex;
   glGenTextures(1, &tex);
   glBindTexture(GL_TEXTURE_2D, tex);
@@ -145,7 +147,8 @@ void renderEngine::Update() {
 
   // Imgui goes here
   ImGui::Begin("Fluidised Bed Simulator");
-  ImGui::Text("Size = %d x %d", my_image_width, my_image_height);
+  ImGui::Text("Size = %d x %d. Tickrate = %d. Tick = %d.", my_image_width,
+              my_image_height, RE_TARGET_TICKRATE, tick);
   ImGui::Image((void*)(intptr_t)my_image_texture,
                ImVec2(my_image_width, my_image_height));
   ImGui::End();
