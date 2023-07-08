@@ -21,7 +21,8 @@ void fluidEngine::Update() {
   for (int x = 0; x < FB_SIZE; x++) {
     for (int y = 0; y < FB_SIZE; y++) {
       if (y != 0) {
-        if (sand[(FB_SIZE - 1) - x][(FB_SIZE - 1) - y]) {
+        if (sand[(FB_SIZE - 1) - x][(FB_SIZE - 1) - y] &&
+            !sand[(FB_SIZE - 1) - x + 1][(FB_SIZE - 1) - y + 1]) {
           // printf("move!");
           sand[(FB_SIZE - 1) - x][(FB_SIZE - 1) - y] = false;
           sand[(FB_SIZE - 1) - x][(FB_SIZE - 1) - y + 1] = true;

@@ -20,7 +20,12 @@ int main(int argc, char *args[]) {
 
   engine->Initialise("Fluidised Bed Engine", 800, 640);
   fengine->Start();
-  fengine->AddSandAtPos(0, 0);
+  for (int i = 0; i < 100; i++) {
+    int x, y;
+    x = (rand() % FB_SIZE);
+    y = (rand() % FB_SIZE);
+    fengine->AddSandAtPos(x, y);
+  }
 
   while (engine->Running()) {
     frameStart = SDL_GetTicks();

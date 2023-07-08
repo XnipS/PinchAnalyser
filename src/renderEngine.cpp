@@ -87,8 +87,9 @@ void renderEngine::UpdateImage(float colours[]) {
   GLuint tex;
   glGenTextures(1, &tex);
   glBindTexture(GL_TEXTURE_2D, tex);
-  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
   glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, my_image_width, my_image_height, 0,
                GL_RGB, GL_FLOAT, colours);
   glBindTexture(GL_TEXTURE_2D, 0);
@@ -150,7 +151,8 @@ void renderEngine::Update() {
   ImGui::Text("Size = %d x %d. Tickrate = %d. Tick = %d.", my_image_width,
               my_image_height, FB_TARGET_TICKRATE, tick);
   ImGui::Image((void*)(intptr_t)my_image_texture,
-               ImVec2(my_image_width, my_image_height));
+               ImVec2(my_image_width * FB_IMAGE_SCALE,
+                      my_image_height * FB_IMAGE_SCALE));
   ImGui::End();
 }
 
