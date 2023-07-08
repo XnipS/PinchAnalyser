@@ -5,6 +5,8 @@
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_events.h>
 #include <SDL2/SDL_video.h>
+
+#include <cstdio>
 #define STB_IMAGE_IMPLEMENTATION
 #include <stb/stb_image.h>
 
@@ -23,8 +25,8 @@ ImGuiIO io;
 ImVec4 clear_color = ImVec4(0.45f, 0.55f, 0.60f, 1.00f);
 
 GLuint my_image_texture = 0;
-int my_image_width = 32;
-int my_image_height = 32;
+int my_image_width = 500;
+int my_image_height = 500;
 
 // Simple helper function to load an image into a OpenGL texture with common
 // settings
@@ -65,6 +67,33 @@ bool LoadTextureFromFile(const char* filename, GLuint* out_texture,
   return true;
 }
 
+void renderEngine::FloodImage(Colour3 col) {
+  float pixels[my_image_width * my_image_height * 3];
+  for (int x = 0; x < (my_image_width); x++) {
+    for (int y = 0; y < (my_image_height); y++) {
+      pixels[(y * my_image_width * 3) + (x * 3)] = col.r;
+      pixels[(y * my_image_width * 3) + (x * 3) + 1] = col.b;
+      pixels[(y * my_image_width * 3) + (x * 3) + 2] = col.g;
+    }
+  }
+
+  UpdateImage(pixels);
+}
+
+void renderEngine::UpdateImage(float colours[]) {
+  printf("Image updated!\n");
+  GLuint tex;
+  glGenTextures(1, &tex);
+  glBindTexture(GL_TEXTURE_2D, tex);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+  glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, my_image_width, my_image_height, 0,
+               GL_RGB, GL_FLOAT, colours);
+  glBindTexture(GL_TEXTURE_2D, 0);
+
+  my_image_texture = tex;
+}
+
 void renderEngine::Initialise(const char* title, int w, int h) {
   // SDL Attributes
   SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
@@ -88,25 +117,11 @@ void renderEngine::Initialise(const char* title, int w, int h) {
   ImGui_ImplSDL2_InitForOpenGL(window, gl_context);
   ImGui_ImplOpenGL3_Init();
   isRunning = true;
-
-  float pixels[my_image_width * my_image_height * 3];
-  for (int x = 0; x < (my_image_width); x++) {
-    for (int y = 0; y < (my_image_height); y++) {
-      pixels[(y * my_image_width * 3) + (x * 3)] = 1;
-      pixels[(y * my_image_width * 3) + (x * 3) + 1] = 0;
-      pixels[(y * my_image_width * 3) + (x * 3) + 2] = 0;
-    }
-  }
-  GLuint tex;
-  glGenTextures(1, &tex);
-  glBindTexture(GL_TEXTURE_2D, tex);
-  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-  glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, my_image_width, my_image_height, 0,
-               GL_RGB, GL_FLOAT, pixels);
-  glBindTexture(GL_TEXTURE_2D, 0);
-
-  my_image_texture = tex;
+  Colour3 col;
+  col.r = .2;
+  col.g = .2;
+  col.b = .2;
+  FloodImage(col);
 }
 
 void renderEngine::Update() {
@@ -129,11 +144,8 @@ void renderEngine::Update() {
   ImGui::NewFrame();
 
   // Imgui goes here
-
-  // ImGui::ShowMetricsWindow();
-  ImGui::Begin("OpenGL Texture Test");
-  ImGui::Text("pointer = %u", my_image_texture);
-  ImGui::Text("size = %d x %d", my_image_width, my_image_height);
+  ImGui::Begin("Fluidised Bed Simulator");
+  ImGui::Text("Size = %d x %d", my_image_width, my_image_height);
   ImGui::Image((void*)(intptr_t)my_image_texture,
                ImVec2(my_image_width, my_image_height));
   ImGui::End();

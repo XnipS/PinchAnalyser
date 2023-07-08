@@ -6,19 +6,25 @@
 #include <iostream>
 
 #include "../include/core.h"
+#include "../include/fluidEngine.h"
 #include "../include/renderEngine.h"
 
 renderEngine *engine = nullptr;
+fluidEngine *fengine = nullptr;
 Uint32 frameStart;
 int currentTickTime;
 
 int main(int argc, char *args[]) {
   engine = new renderEngine();
+  fengine = new fluidEngine();
 
   engine->Initialise("Fluidised Bed Engine", 800, 640);
+  fengine->Start();
+  fengine->AddSandAtPos(0, 0);
 
   while (engine->Running()) {
     frameStart = SDL_GetTicks();
+    fengine->Update();
     engine->Update();
     engine->Render();
 
