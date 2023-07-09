@@ -8,24 +8,23 @@
 
 fluidEngine::fluidEngine(){};
 fluidEngine::~fluidEngine(){};
-void fluidEngine::AddSandAtPos(int x, int y) { sand[x][y] = true; };
+void fluidEngine::AddSandAtPos(int x, int y) { sand[x][y].isSand = true; };
 void fluidEngine::Start() {
   for (int x = 0; x < FB_SIZE; x++) {
     for (int y = 0; y < FB_SIZE; y++) {
-      sand[x][y] = false;
+      sand[x][y].isSand = false;
     }
   }
   printf("Fluid Initialised\n");
 };
 void fluidEngine::Update() {
-  for (int x = 0; x < FB_SIZE; x++) {
-    for (int y = 0; y < FB_SIZE; y++) {
-      if (y != 0) {
-        if (sand[(FB_SIZE - 1) - x][(FB_SIZE - 1) - y] &&
-            !sand[(FB_SIZE - 1) - x + 1][(FB_SIZE - 1) - y + 1]) {
+  for (int x = FB_SIZE - 1; x >= 0; x--) {
+    for (int y = FB_SIZE - 1; y >= 0; y--) {
+      if (y != FB_SIZE - 1) {
+        if (sand[x][y].isSand && !sand[x][y + 1].isSand) {
           // printf("move!");
-          sand[(FB_SIZE - 1) - x][(FB_SIZE - 1) - y] = false;
-          sand[(FB_SIZE - 1) - x][(FB_SIZE - 1) - y + 1] = true;
+          sand[x][y].isSand = false;
+          sand[x][y + 1].isSand = true;
         }
       }
     }
@@ -36,7 +35,7 @@ float* fluidEngine::SandToColour(float colours[]) {
   for (int x = 0; x < (w); x++) {
     for (int y = 0; y < (h); y++) {
       Colour3 col;
-      if (sand[x][y]) {
+      if (sand[x][y].isSand) {
         col.r = 1;
         col.g = 1;
         col.b = 1;

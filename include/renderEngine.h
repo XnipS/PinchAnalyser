@@ -1,7 +1,4 @@
 #pragma once
-#include "../depend/imgui/backends/imgui_impl_opengl3.h"
-#include "../depend/imgui/backends/imgui_impl_sdl2.h"
-#include "../depend/imgui/imgui.h"
 
 struct Colour3 {
   float r = 0;
