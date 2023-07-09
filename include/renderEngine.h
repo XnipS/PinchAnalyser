@@ -1,5 +1,7 @@
 #pragma once
 
+#include <string>
+#include <vector>
 struct Colour3 {
   float r = 0;
   float b = 0;
@@ -18,6 +20,7 @@ class renderEngine {
   void Render();
   void Clean();
   bool Running() { return isRunning; };
+  std::vector<std::string> currentDebugInfo;
 
  private:
   int tick = 0;

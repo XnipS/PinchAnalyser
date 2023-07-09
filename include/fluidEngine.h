@@ -3,13 +3,15 @@
 
 #include <vector>
 
+#include "renderEngine.h"
+
 struct Vector2 {
  public:
-  Vector2(float xPos, float yPos) {
+  Vector2(double xPos, double yPos) {
     x = xPos;
     y = yPos;
   }
-  float x, y;
+  double x, y;
 };
 
 struct Vector2Int {
@@ -23,9 +25,9 @@ struct Vector2Int {
 
 class fluidParticle {
  public:
-  bool isSand = false;
   Vector2 position = *new Vector2(0, 0);
   Vector2 velocity = *new Vector2(0, 0);
+  float mass = 1.0;
   fluidParticle(int x, int y) { position = *new Vector2(x, y); }
 };
 
@@ -33,7 +35,7 @@ class fluidEngine {
  public:
   fluidEngine();
   ~fluidEngine();
-  void Start();
+  void Start(renderEngine* ren);
   void Update();
   void AddSandAtPos(int x, int y);
   float* SandToColour(float colours[]);

@@ -19,8 +19,8 @@ int main(int argc, char *args[]) {
   fengine = new fluidEngine();
 
   engine->Initialise("Fluidised Bed Engine", 1280, 720);
-  fengine->Start();
-  for (int i = 0; i < 10; i++) {
+  fengine->Start(engine);
+  for (int i = 0; i < FB_MOLECULE_COUNT; i++) {
     int x, y;
     x = (rand() % FB_SIZE);
     y = (rand() % FB_SIZE);
