@@ -156,7 +156,7 @@ void renderEngine::Update() {
   ImGui::EndMainMenuBar();
 
   // Main Simulation
-  ImGui::Begin("Fluidised Bed Simulator", NULL,
+  ImGui::Begin("Ideal Gas Simulator", NULL,
                ImGuiWindowFlags_NoResize | ImGuiWindowFlags_AlwaysAutoResize |
                    ImGuiWindowFlags_NoCollapse);
   ImGui::Text("Size = %d x %d. Tickrate = %d. Tick = %d.", my_image_width,

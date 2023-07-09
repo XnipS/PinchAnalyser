@@ -1,5 +1,6 @@
 #include "../include/fluidEngine.h"
 
+#include <SDL2/SDL_log.h>
 #include <X11/X.h>
 #include <math.h>
 
@@ -84,17 +85,12 @@ Vector2 VectorScalar(Vector2* i, float j) {
 void fluidEngine::Start(renderEngine* ren) {
   printf("Fluid Engine Initialised\n");
   renderer = ren;
-  // Test rounding
-  // Vector2 newVec = *new Vector2(0.5f, 1.2f);
-  // Vector2Int vec = ClampVelocity(&newVec);
-  // printf("x = %i, y = %i", vec.x, vec.y);
 };
 
 void fluidEngine::Update() {
-  // printf("Fluid Count: %zu\n", sand.size());
+  // TOTAL KINETIC ENERGY
   float energy = 0;
   for (int t = 0; t < sand.size(); t++) {
-    // energy += VectorMagnitude(&sand[t].velocity);
     float magnitude = VectorMagnitude(&sand[t].velocity);
     energy += 0.5 * magnitude * magnitude;
   }
@@ -112,44 +108,25 @@ void fluidEngine::Update() {
     renderer->currentDebugInfo.push_back(ss.str());
     renderer->currentDebugInfo.push_back("INCOMING!");
   }
-  // printf("Energy: %f\n", energy);
 
   std::vector<fluidParticle> oldSand = Duplicate(sand);
 
   for (int i = 0; i < oldSand.size(); i++) {
     Vector2 nextPos = VectorSum(&sand[i].position, &sand[i].velocity);
     Vector2Int round = VectorRoundToInt(&nextPos);
-    // printf("%d", FB_DELTATIME);
-    // printf("Pos: %f, Velocity: %f, Next: %f\n", sand[i].position.y,
-    //        sand[i].velocity.y, nextPos.y);
+
     if (round.x < 0 || round.x > (FB_SIZE - 1)) {
       sand[i].velocity.x = -sand[i].velocity.x;
     } else if (round.y < 0 || round.y > (FB_SIZE - 1)) {
       sand[i].velocity.y = -sand[i].velocity.y;
     } else {
-      // sand[i].position = nextPos;
-      //}
-
       for (int j = 0; j < oldSand.size(); j++) {
         if (i != j) {
           double dx = sand[j].position.x - sand[i].position.x;
           double dy = sand[j].position.y - sand[i].position.y;
           double distance = std::sqrt(dx * dx + dy * dy);
-          /*           if (distance <= 1) {
-                      sand[i].velocity.x = -sand[i].velocity.x;
-                      sand[i].velocity.y = -sand[i].velocity.y;
-                      oldSand[j].velocity.x = -oldSand[j].velocity.x;
-                      oldSand[j].velocity.y = -oldSand[j].velocity.y;
-                      while (distance <= 1) {
-                        nextPos = VectorSum(&sand[i].position,
-             &sand[i].velocity); sand[i].position = nextPos;
 
-                        dx = sand[j].position.x - sand[i].position.x;
-                        dy = sand[j].position.y - sand[i].position.y;
-                        distance = std::sqrt(dx * dx + dy * dy);
-                      }
-                    } */
-          if (distance <= 1) {
+          if (distance <= FB_MOLECULE_SIZE) {
             double nx = dx / distance;
             double ny = dy / distance;
 
@@ -176,7 +153,8 @@ void fluidEngine::Update() {
             sand[j].velocity.x += dv2n * nx;
             sand[j].velocity.y += dv2n * ny;
 
-            while (distance <= 1) {
+            // Movement
+            while (distance <= FB_MOLECULE_SIZE) {
               nextPos = VectorSum(&sand[i].position, &sand[i].velocity);
               sand[i].position = nextPos;
 
@@ -202,6 +180,10 @@ float* fluidEngine::SandToColour(float colours[]) {
   white.r = 1;
   white.g = 1;
   white.b = 1;
+  Colour3 red;
+  red.r = 1;
+  red.g = 0;
+  red.b = 0;
   Colour3 grey;
   grey.r = .2;
   grey.g = .2;
@@ -216,10 +198,24 @@ float* fluidEngine::SandToColour(float colours[]) {
 
   for (int i = 0; i < sand.size(); i++) {
     Vector2Int rounded = VectorRoundToInt(&sand[i].position);
-    // std::cout << rounded.x << std::endl;
-    colours[(rounded.y * w * 3) + (rounded.x * 3)] = white.r;
-    colours[(rounded.y * w * 3) + (rounded.x * 3) + 1] = white.b;
-    colours[(rounded.y * w * 3) + (rounded.x * 3) + 2] = white.g;
+
+    if (rounded.x < 0 || rounded.x > (FB_SIZE - 1) || rounded.y < 0 ||
+        rounded.y > (FB_SIZE - 1)) {
+      // OUT OF BOUNDS
+      // printf("Out of bounds @ (%i,%i)!", rounded.x, rounded.y);
+    } else {
+      // std::cout << rounded.x << std::endl;
+      if (i == 0) {
+        // Marker to follow
+        colours[(rounded.y * w * 3) + (rounded.x * 3)] = red.r;
+        colours[(rounded.y * w * 3) + (rounded.x * 3) + 1] = red.b;
+        colours[(rounded.y * w * 3) + (rounded.x * 3) + 2] = red.g;
+      } else {
+        colours[(rounded.y * w * 3) + (rounded.x * 3)] = white.r;
+        colours[(rounded.y * w * 3) + (rounded.x * 3) + 1] = white.b;
+        colours[(rounded.y * w * 3) + (rounded.x * 3) + 2] = white.g;
+      }
+    }
   }
 
   return colours;

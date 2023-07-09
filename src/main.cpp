@@ -20,11 +20,20 @@ int main(int argc, char *args[]) {
 
   engine->Initialise("Fluidised Bed Engine", 1280, 720);
   fengine->Start(engine);
-  for (int i = 0; i < FB_MOLECULE_COUNT; i++) {
-    int x, y;
-    x = (rand() % FB_SIZE);
-    y = (rand() % FB_SIZE);
-    fengine->AddSandAtPos(x, y);
+
+  if (FB_MOLECULE_SPAWNRANDOM) {
+    for (int i = 0; i < FB_MOLECULE_COUNT; i++) {
+      int x, y;
+      x = (rand() % FB_SIZE);
+      y = (rand() % FB_SIZE);
+      fengine->AddSandAtPos(x, y);
+    }
+  } else {
+    for (int x = 0; x < FB_MOLECULE_COUNT; x++) {
+      for (int y = 0; y < FB_MOLECULE_COUNT; y++) {
+        fengine->AddSandAtPos(x, y);
+      }
+    }
   }
 
   while (engine->Running()) {

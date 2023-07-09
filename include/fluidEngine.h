@@ -39,6 +39,7 @@ class fluidEngine {
   void Update();
   void AddSandAtPos(int x, int y);
   float* SandToColour(float colours[]);
+  std::vector<fluidParticle> GetSand() { return sand; }
 
  private:
   std::vector<fluidParticle> sand;
