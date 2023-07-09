@@ -165,9 +165,25 @@ void renderEngine::Update() {
                       my_image_height * FB_IMAGE_SCALE));
   ImGui::End();
 
-  ImGui::Begin("Fluidised Bed ");
-  ImGui::Text("Size");
-
+  // Top left Overlay
+  ImGui::SetNextWindowBgAlpha(0.35f);
+  const float PAD = 10.0f;
+  const ImGuiViewport* viewport = ImGui::GetMainViewport();
+  ImVec2 work_pos = viewport->WorkPos;
+  ImVec2 work_size = viewport->WorkSize;
+  ImVec2 window_pos, window_pos_pivot;
+  window_pos.x = (work_pos.x + PAD);
+  window_pos.y = (work_pos.y + PAD);
+  window_pos_pivot.x = 0.0f;
+  window_pos_pivot.y = 0.0f;
+  ImGui::SetNextWindowPos(window_pos, ImGuiCond_Always, window_pos_pivot);
+  ImGui::Begin(
+      "Debug", NULL,
+      ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_AlwaysAutoResize |
+          ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoNav |
+          ImGuiWindowFlags_NoFocusOnAppearing | ImGuiWindowFlags_NoMove);
+  ImGui::Text("Debug");
+  // ImGui::Text("Fluid Count: %i", fluidEngine::);
   ImGui::End();
 }
 

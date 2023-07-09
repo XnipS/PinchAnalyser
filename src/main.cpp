@@ -20,7 +20,7 @@ int main(int argc, char *args[]) {
 
   engine->Initialise("Fluidised Bed Engine", 1280, 720);
   fengine->Start();
-  for (int i = 0; i < 100; i++) {
+  for (int i = 0; i < 10; i++) {
     int x, y;
     x = (rand() % FB_SIZE);
     y = (rand() % FB_SIZE);
