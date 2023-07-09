@@ -111,11 +111,11 @@ void renderEngine::Initialise(const char* title, int w, int h) {
 
   // Setup ImGui context
   IMGUI_CHECKVERSION();
+
   ImGui::CreateContext();
   io = ImGui::GetIO();
-  io.ConfigFlags |=
-      ImGuiConfigFlags_NavEnableKeyboard;  // Enable Keyboard Controls
-
+  io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;
+  ImGui::GetIO().ConfigFlags |= ImGuiConfigFlags_DockingEnable;
   // Setup Platform/Renderer backends
   ImGui_ImplSDL2_InitForOpenGL(window, gl_context);
   ImGui_ImplOpenGL3_Init();
@@ -147,12 +147,27 @@ void renderEngine::Update() {
   ImGui::NewFrame();
 
   // Imgui goes here
-  ImGui::Begin("Fluidised Bed Simulator");
+  // ImGui::ShowDemoWindow();
+
+  // Menu Bar
+  ImGui::BeginMainMenuBar();
+  ImGui::Text("NIP-Engine");
+  ImGui::EndMainMenuBar();
+
+  // Main Simulation
+  ImGui::Begin("Fluidised Bed Simulator", NULL,
+               ImGuiWindowFlags_NoResize | ImGuiWindowFlags_AlwaysAutoResize |
+                   ImGuiWindowFlags_NoCollapse);
   ImGui::Text("Size = %d x %d. Tickrate = %d. Tick = %d.", my_image_width,
               my_image_height, FB_TARGET_TICKRATE, tick);
   ImGui::Image((void*)(intptr_t)my_image_texture,
                ImVec2(my_image_width * FB_IMAGE_SCALE,
                       my_image_height * FB_IMAGE_SCALE));
+  ImGui::End();
+
+  ImGui::Begin("Fluidised Bed ");
+  ImGui::Text("Size");
+
   ImGui::End();
 }
 

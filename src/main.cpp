@@ -18,7 +18,7 @@ int main(int argc, char *args[]) {
   engine = new renderEngine();
   fengine = new fluidEngine();
 
-  engine->Initialise("Fluidised Bed Engine", 800, 640);
+  engine->Initialise("Fluidised Bed Engine", 1280, 720);
   fengine->Start();
   for (int i = 0; i < 100; i++) {
     int x, y;
