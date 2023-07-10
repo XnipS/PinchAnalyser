@@ -25,8 +25,8 @@ renderEngine* renderer;
 
 void fluidEngine::AddSandAtPos(int x, int y) {
   fluidParticle particle = *new fluidParticle(x, y);
-  particle.velocity.y = -0.1;
-  particle.velocity.x = 0.2;
+  particle.velocity.y = 0.1;  //-0.1;
+  particle.velocity.x = 0.1;  // 0.2;
   sand.push_back(particle);
 };
 
@@ -34,53 +34,50 @@ std::vector<fluidParticle> Duplicate(std::vector<fluidParticle>& input) {
   return input;
 };
 
-Vector2Int VectorRoundToInt(Vector2* input) {
+static Vector2Int VectorRoundToInt(Vector2* input) {
   Vector2Int output = *new Vector2Int(0, 0);
-  output.x = std::round(input->x);
-  output.y = std::round(input->y);
+  output.x = std::floor(input->x);
+  output.y = std::floor(input->y);
+  // delete &input;
   return output;
 }
-double VectorMagnitude(Vector2* input) {
+static double VectorMagnitude(Vector2* input) {
   double magnitude = std::sqrt(input->x * input->x + input->y * input->y);
   return magnitude;
 }
-Vector2 VectorNormalise(Vector2* input) {
-  Vector2 output = *new Vector2(input->x, input->y);
+static Vector2 VectorNormalise(Vector2* input) {
   double magnitude = VectorMagnitude(input);
   if (magnitude != 0.0) {
-    output.x /= magnitude;
-    output.y /= magnitude;
+    input->x /= magnitude;
+    input->y /= magnitude;
   }
 
-  return output;
+  return *input;
 }
-float VectorDistance(Vector2* u, Vector2* v) {
+static float VectorDistance(Vector2* u, Vector2* v) {
   float output = std::sqrt(pow((u->x - v->x), 2) + pow((u->y - v->y), 2));
   return output;
 }
-Vector2 VectorSum(Vector2* i, Vector2* j) {
-  Vector2 output = *new Vector2(0, 0);
-  output.x = i->x + j->x;
-  output.y = i->y + j->y;
-  return output;
+static Vector2 VectorSum(Vector2* i, Vector2* j) {
+  i->x += j->x;
+  i->y += j->y;
+  return *i;
 }
-Vector2 VectorSubtraction(Vector2* i, Vector2* j) {
-  Vector2 output = *new Vector2(0, 0);
-  output.x = i->x - j->x;
-  output.y = i->y - j->y;
-  return output;
+static Vector2 VectorSubtraction(Vector2* i, Vector2* j) {
+  i->x -= j->x;
+  i->y -= j->y;
+  return *i;
 }
-float VectorDot(Vector2* i, Vector2* j) {
+static float VectorDot(Vector2* i, Vector2* j) {
   float output = 0;
   output += i->x * j->x;
   output += i->y * j->y;
   return output;
 }
-Vector2 VectorScalar(Vector2* i, float j) {
-  Vector2 output = *new Vector2(0, 0);
-  output.x = i->x * j;
-  output.y = i->y * j;
-  return output;
+static Vector2 VectorScalar(Vector2* i, float j) {
+  i->x *= j;
+  i->y *= j;
+  return *i;
 }
 
 void fluidEngine::Start(renderEngine* ren) {
@@ -110,69 +107,89 @@ void fluidEngine::Update() {
     renderer->currentDebugInfo.push_back("INCOMING!");
   }
 
-  std::vector<fluidParticle> oldSand = Duplicate(sand);
+  // std::vector<fluidParticle> oldSand = Duplicate(sand);
 
-  for (int i = 0; i < oldSand.size(); i++) {
+  for (int i = 0; i < sand.size(); i++) {
+    sand[i].velocity.y += cfg_gravity;
     Vector2 nextPos = VectorSum(&sand[i].position, &sand[i].velocity);
     Vector2Int round = VectorRoundToInt(&nextPos);
 
     if (round.x < 0 && sand[i].velocity.x < 0) {
-      sand[i].velocity.x = -sand[i].velocity.x;
+      sand[i].position.x = 0;
+      sand[i].velocity.x = -sand[i].velocity.x * (1.0 - cfg_dampen);
     } else if (round.x > (FB_SIZE - 1) && sand[i].velocity.x > 0) {
-      sand[i].velocity.x = -sand[i].velocity.x;
-
+      sand[i].position.x = FB_SIZE - 1;
+      sand[i].velocity.x = -sand[i].velocity.x * (1.0 - cfg_dampen);
     } else if (round.y < 0 && sand[i].velocity.y < 0) {
-      sand[i].velocity.y = -sand[i].velocity.y;
+      sand[i].position.y = 0;
+      sand[i].velocity.y = -sand[i].velocity.y * (1.0 - cfg_dampen);
     } else if (round.y > (FB_SIZE - 1) && sand[i].velocity.y > 0) {
-      sand[i].velocity.y = -sand[i].velocity.y;
+      sand[i].position.y = FB_SIZE - 1;
+      sand[i].velocity.y = -sand[i].velocity.y * (1.0 - cfg_dampen);
 
     } else {
-      for (int j = 0; j < oldSand.size(); j++) {
+      for (int j = 0; j < sand.size(); j++) {
         if (i != j) {
           double dx = sand[j].position.x - sand[i].position.x;
           double dy = sand[j].position.y - sand[i].position.y;
-          double distance = std::sqrt(dx * dx + dy * dy);
 
-          if (distance <= FB_MOLECULE_SIZE) {
-            double nx = dx / distance;
-            double ny = dy / distance;
+          if (dx <= cfg_size * 2 && dy <= cfg_size * 2) {
+            double distance = std::sqrt(dx * dx + dy * dy);
 
-            // Calculate the relative velocity components along the collision
-            // vector
-            double v1n = sand[i].velocity.x * nx + sand[i].velocity.y * ny;
-            double v2n = sand[j].velocity.x * nx + sand[j].velocity.y * ny;
+            if (distance <= cfg_size) {
+              if (distance == 0) {
+                printf("Zero distance");
+                continue;
+              }
+              double nx = dx / distance;
+              double ny = dy / distance;
 
-            // Calculate the new normal velocity components after the collision
-            double v1n_after =
-                (v1n * (sand[i].mass - sand[j].mass) + 2 * sand[j].mass * v2n) /
-                (sand[i].mass + sand[j].mass);
-            double v2n_after =
-                (v2n * (sand[j].mass - sand[i].mass) + 2 * sand[i].mass * v1n) /
-                (sand[i].mass + sand[j].mass);
+              // Calculate the relative velocity components along the collision
+              // vector
+              double v1n = sand[i].velocity.x * nx + sand[i].velocity.y * ny;
+              double v2n = sand[j].velocity.x * nx + sand[j].velocity.y * ny;
 
-            // Calculate the change in normal velocity
-            double dv1n = v1n_after - v1n;
-            double dv2n = v2n_after - v2n;
+              // Calculate the new normal velocity components after the
+              // collision
+              double v1n_after = (v1n * (sand[i].mass - sand[j].mass) +
+                                  2 * sand[j].mass * v2n) /
+                                 (sand[i].mass + sand[j].mass);
+              double v2n_after = (v2n * (sand[j].mass - sand[i].mass) +
+                                  2 * sand[i].mass * v1n) /
+                                 (sand[i].mass + sand[j].mass);
 
-            // Update the velocities of the circles after the collision
-            sand[i].velocity.x += dv1n * nx;
-            sand[i].velocity.y += dv1n * ny;
-            sand[j].velocity.x += dv2n * nx;
-            sand[j].velocity.y += dv2n * ny;
+              // Dampen
+              v1n_after *= (1.0 - cfg_dampen);
+              v2n_after *= (1.0 - cfg_dampen);
 
-            // Movement
-            while (distance <= FB_MOLECULE_SIZE) {
-              nextPos = VectorSum(&sand[i].position, &sand[i].velocity);
+              // Calculate the change in normal velocity
+              double dv1n = v1n_after - v1n;
+              double dv2n = v2n_after - v2n;
+
+              // Update the velocities of the circles after the collision
+              sand[i].velocity.x += dv1n * nx;
+              sand[i].velocity.y += dv1n * ny;
+              sand[j].velocity.x += dv2n * nx;
+              sand[j].velocity.y += dv2n * ny;
+
+              // Movement
+              while (distance <= cfg_size) {
+                nextPos = VectorSum(&sand[i].position, &sand[i].velocity);
+                sand[i].position = nextPos;
+
+                dx = sand[j].position.x - sand[i].position.x;
+                dy = sand[j].position.y - sand[i].position.y;
+                distance = std::sqrt(dx * dx + dy * dy);
+                if (distance == 0) {
+                  printf("Zero distance");
+                  break;
+                }
+              }
+
+            } else {
+              // Movement
               sand[i].position = nextPos;
-
-              dx = sand[j].position.x - sand[i].position.x;
-              dy = sand[j].position.y - sand[i].position.y;
-              distance = std::sqrt(dx * dx + dy * dy);
             }
-
-          } else {
-            // Movement
-            sand[i].position = nextPos;
           }
         }
       }

@@ -21,6 +21,9 @@ int main(int argc, char *args[]) {
   engine->Initialise("Fluidised Bed Engine", 1280, 720);
   fengine->Start(engine);
 
+  engine->Start(&fengine->cfg_gravity, &fengine->cfg_dampen,
+                &fengine->cfg_size);
+
   if (FB_MOLECULE_SPAWNRANDOM) {
     for (int i = 0; i < FB_MOLECULE_COUNT; i++) {
       int x, y;

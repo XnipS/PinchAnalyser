@@ -30,6 +30,10 @@ GLuint my_image_texture = 0;
 int my_image_width = FB_SIZE;
 int my_image_height = FB_SIZE;
 
+float* var_gravity;
+float* var_dampen;
+float* var_size;
+
 // Simple helper function to load an image into a OpenGL texture with common
 // settings
 bool LoadTextureFromFile(const char* filename, GLuint* out_texture,
@@ -95,6 +99,12 @@ void renderEngine::UpdateImage(float colours[]) {
   glBindTexture(GL_TEXTURE_2D, 0);
 
   my_image_texture = tex;
+}
+
+void renderEngine::Start(float* gravity, float* damp, float* size) {
+  var_gravity = gravity;
+  var_dampen = damp;
+  var_size = size;
 }
 
 void renderEngine::Initialise(const char* title, int w, int h) {
@@ -166,6 +176,16 @@ void renderEngine::Update() {
                       my_image_height * FB_IMAGE_SCALE));
   ImGui::End();
 
+  // Toolbox
+  ImGui::Begin("Toolbox", NULL,
+               ImGuiWindowFlags_NoResize | ImGuiWindowFlags_AlwaysAutoResize |
+                   ImGuiWindowFlags_NoCollapse);
+  ImGui::SliderFloat("Gravity", var_gravity, 0, 10);
+  ImGui::SliderFloat("Dampen", var_dampen, 0, 10);
+  ImGui::SliderFloat("Size", var_size, 0, 10);
+
+  ImGui::End();
+
   // Top left Overlay
   if (currentDebugInfo.size() > 0) {
     ImGui::SetNextWindowBgAlpha(0.35f);
@@ -189,7 +209,6 @@ void renderEngine::Update() {
     for (int i = 0; i < currentDebugInfo.size(); i++) {
       ImGui::Text("%s", currentDebugInfo[i].c_str());
     }
-    // ImGui::Text("Fluid Count: %i", fluidEngine::);
     ImGui::End();
   }
 }

@@ -40,6 +40,9 @@ class fluidEngine {
   void AddSandAtPos(int x, int y);
   float* SandToColour(float colours[]);
   std::vector<fluidParticle> GetSand() { return sand; }
+  float cfg_gravity = 0.5;
+  float cfg_dampen = 0.5;
+  float cfg_size = 1;
 
  private:
   std::vector<fluidParticle> sand;
