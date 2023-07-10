@@ -16,6 +16,7 @@
 
 #include "../include/core.h"
 #include "../include/renderEngine.h"
+#include "imgui.h"
 
 fluidEngine::fluidEngine(){};
 fluidEngine::~fluidEngine(){};
@@ -115,10 +116,16 @@ void fluidEngine::Update() {
     Vector2 nextPos = VectorSum(&sand[i].position, &sand[i].velocity);
     Vector2Int round = VectorRoundToInt(&nextPos);
 
-    if (round.x < 0 || round.x > (FB_SIZE - 1)) {
+    if (round.x < 0 && sand[i].velocity.x < 0) {
       sand[i].velocity.x = -sand[i].velocity.x;
-    } else if (round.y < 0 || round.y > (FB_SIZE - 1)) {
+    } else if (round.x > (FB_SIZE - 1) && sand[i].velocity.x > 0) {
+      sand[i].velocity.x = -sand[i].velocity.x;
+
+    } else if (round.y < 0 && sand[i].velocity.y < 0) {
       sand[i].velocity.y = -sand[i].velocity.y;
+    } else if (round.y > (FB_SIZE - 1) && sand[i].velocity.y > 0) {
+      sand[i].velocity.y = -sand[i].velocity.y;
+
     } else {
       for (int j = 0; j < oldSand.size(); j++) {
         if (i != j) {

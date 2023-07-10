@@ -9,6 +9,6 @@
 #define FB_GRAVITY 1.0
 
 #define FB_DAMPEN 0.5
-#define FB_MOLECULE_COUNT 50
+#define FB_MOLECULE_COUNT 2
 #define FB_MOLECULE_SPAWNRANDOM true
 #define FB_MOLECULE_SIZE 1
