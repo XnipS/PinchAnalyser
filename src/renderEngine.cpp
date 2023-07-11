@@ -27,8 +27,6 @@ ImGuiIO io;
 ImVec4 clear_color = ImVec4(0.45f, 0.55f, 0.60f, 1.00f);
 
 GLuint my_image_texture = 0;
-int my_image_width = FB_SIZE;
-int my_image_height = FB_SIZE;
 
 float* var_gravity;
 float* var_dampen;
@@ -74,34 +72,30 @@ bool LoadTextureFromFile(const char* filename, GLuint* out_texture,
 }
 
 void renderEngine::FloodImage(Colour3 col) {
-  float pixels[my_image_width * my_image_height * 3];
-  for (int x = 0; x < (my_image_width); x++) {
-    for (int y = 0; y < (my_image_height); y++) {
-      pixels[(y * my_image_width * 3) + (x * 3)] = col.r;
-      pixels[(y * my_image_width * 3) + (x * 3) + 1] = col.b;
-      pixels[(y * my_image_width * 3) + (x * 3) + 2] = col.g;
+  float pixels[FB_SIZE * FB_SIZE * 3];
+  for (int x = 0; x < (FB_SIZE); x++) {
+    for (int y = 0; y < (FB_SIZE); y++) {
+      pixels[(y * FB_SIZE * 3) + (x * 3)] = col.r;
+      pixels[(y * FB_SIZE * 3) + (x * 3) + 1] = col.b;
+      pixels[(y * FB_SIZE * 3) + (x * 3) + 2] = col.g;
     }
   }
 
-  UpdateImage(pixels);
+  UpdateImage(&pixels[0]);
 }
 
-void renderEngine::UpdateImage(float colours[]) {
-  // printf("Image updated!\n");
-  GLuint tex;
-  glGenTextures(1, &tex);
-  glBindTexture(GL_TEXTURE_2D, tex);
+void renderEngine::UpdateImage(float* colours) {
+  // glGenTextures(1, &my_image_texture);
+  glBindTexture(GL_TEXTURE_2D, my_image_texture);
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-  glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, my_image_width, my_image_height, 0,
-               GL_RGB, GL_FLOAT, colours);
+  glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, FB_SIZE, FB_SIZE, 0, GL_RGB, GL_FLOAT,
+               colours);
   glBindTexture(GL_TEXTURE_2D, 0);
-
-  my_image_texture = tex;
 }
 
-void renderEngine::Start(float* gravity, float* damp, float* size) {
+void renderEngine::UpdateConfig(float* gravity, float* damp, float* size) {
   var_gravity = gravity;
   var_dampen = damp;
   var_size = size;
@@ -118,7 +112,6 @@ void renderEngine::Initialise(const char* title, int w, int h) {
                             SDL_WINDOWPOS_CENTERED, w, h, window_flags);
   gl_context = SDL_GL_CreateContext(window);
   SDL_GL_MakeCurrent(window, gl_context);
-
   // Setup ImGui context
   IMGUI_CHECKVERSION();
 
@@ -130,10 +123,10 @@ void renderEngine::Initialise(const char* title, int w, int h) {
   ImGui_ImplSDL2_InitForOpenGL(window, gl_context);
   ImGui_ImplOpenGL3_Init();
   isRunning = true;
-  Colour3 col;
-  col.r = .2;
-  col.g = .2;
-  col.b = .2;
+  // Initialise texture on gpu
+  glGenTextures(1, &my_image_texture);
+  // Setup default tank
+  const Colour3 col(.2, .2, .2);
   FloodImage(col);
 }
 void renderEngine::Update() {
@@ -169,18 +162,17 @@ void renderEngine::Update() {
   ImGui::Begin("Ideal Gas Simulator", NULL,
                ImGuiWindowFlags_NoResize | ImGuiWindowFlags_AlwaysAutoResize |
                    ImGuiWindowFlags_NoCollapse);
-  ImGui::Text("Size = %d x %d. Tickrate = %d. Tick = %d.", my_image_width,
-              my_image_height, FB_TARGET_TICKRATE, tick);
+  ImGui::Text("Size = %d x %d. Tickrate = %d. Tick = %d.", FB_SIZE, FB_SIZE,
+              FB_TARGET_TICKRATE, tick);
   ImGui::Image((void*)(intptr_t)my_image_texture,
-               ImVec2(my_image_width * FB_IMAGE_SCALE,
-                      my_image_height * FB_IMAGE_SCALE));
+               ImVec2(FB_SIZE * FB_IMAGE_SCALE, FB_SIZE * FB_IMAGE_SCALE));
   ImGui::End();
 
   // Toolbox
   ImGui::Begin("Toolbox", NULL,
                ImGuiWindowFlags_NoResize | ImGuiWindowFlags_AlwaysAutoResize |
                    ImGuiWindowFlags_NoCollapse);
-  ImGui::SliderFloat("Gravity", var_gravity, 0, 10);
+  ImGui::SliderFloat("Gravity", var_gravity, -10, 10);
   ImGui::SliderFloat("Dampen", var_dampen, 0, 10);
   ImGui::SliderFloat("Size", var_size, 0, 10);
 
@@ -194,8 +186,8 @@ void renderEngine::Update() {
     ImVec2 work_pos = viewport->WorkPos;
     ImVec2 work_size = viewport->WorkSize;
     ImVec2 window_pos, window_pos_pivot;
-    window_pos.x = (work_pos.x + PAD);
-    window_pos.y = (work_pos.y + PAD);
+    window_pos.x = (work_pos.x + 10);
+    window_pos.y = (work_pos.y + 10);
     window_pos_pivot.x = 0.0f;
     window_pos_pivot.y = 0.0f;
     ImGui::SetNextWindowPos(window_pos, ImGuiCond_Always, window_pos_pivot);

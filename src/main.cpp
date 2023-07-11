@@ -13,7 +13,7 @@ renderEngine *engine = nullptr;
 fluidEngine *fengine = nullptr;
 Uint32 frameStart;
 int currentTickTime;
-
+float pixels[FB_SIZE * FB_SIZE * 3];
 int main(int argc, char *args[]) {
   engine = new renderEngine();
   fengine = new fluidEngine();
@@ -21,8 +21,8 @@ int main(int argc, char *args[]) {
   engine->Initialise("Fluidised Bed Engine", 1280, 720);
   fengine->Start(engine);
 
-  engine->Start(&fengine->cfg_gravity, &fengine->cfg_dampen,
-                &fengine->cfg_size);
+  engine->UpdateConfig(&fengine->cfg_gravity, &fengine->cfg_dampen,
+                       &fengine->cfg_size);
 
   if (FB_MOLECULE_SPAWNRANDOM) {
     for (int i = 0; i < FB_MOLECULE_COUNT; i++) {
@@ -42,9 +42,9 @@ int main(int argc, char *args[]) {
   while (engine->Running()) {
     frameStart = SDL_GetTicks();
     fengine->Update();
-    float pixels[FB_SIZE * FB_SIZE * 3];
-    float *test = fengine->SandToColour(pixels);
-    engine->UpdateImage(test);
+
+    fengine->SandToColour(&pixels[0]);
+    engine->UpdateImage(&pixels[0]);  // HERE
     engine->Update();
     engine->Render();
 
@@ -57,7 +57,6 @@ int main(int argc, char *args[]) {
       std::cout << "ms behind!" << std::endl;
     }
   }
-
   engine->Clean();
   return 0;
 }

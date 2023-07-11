@@ -34,12 +34,9 @@ std::vector<fluidParticle> Duplicate(std::vector<fluidParticle>& input) {
   return input;
 };
 
-static Vector2Int VectorRoundToInt(Vector2* input) {
-  Vector2Int output = *new Vector2Int(0, 0);
-  output.x = std::floor(input->x);
-  output.y = std::floor(input->y);
-  // delete &input;
-  return output;
+static void VectorRoundToInt(Vector2* input, Vector2Int* output) {
+  output->x = std::floor(input->x);
+  output->y = std::floor(input->y);
 }
 static double VectorMagnitude(Vector2* input) {
   double magnitude = std::sqrt(input->x * input->x + input->y * input->y);
@@ -112,7 +109,8 @@ void fluidEngine::Update() {
   for (int i = 0; i < sand.size(); i++) {
     sand[i].velocity.y += cfg_gravity;
     Vector2 nextPos = VectorSum(&sand[i].position, &sand[i].velocity);
-    Vector2Int round = VectorRoundToInt(&nextPos);
+    Vector2Int round(0, 0);
+    VectorRoundToInt(&nextPos, &round);
 
     if (round.x < 0 && sand[i].velocity.x < 0) {
       sand[i].position.x = 0;
@@ -198,30 +196,22 @@ void fluidEngine::Update() {
 }
 
 ;
-float* fluidEngine::SandToColour(float colours[]) {
-  int w = FB_SIZE, h = FB_SIZE;
-  Colour3 white;
-  white.r = 1;
-  white.g = 1;
-  white.b = 1;
-  Colour3 red;
-  red.r = 1;
-  red.g = 0;
-  red.b = 0;
-  Colour3 grey;
-  grey.r = .2;
-  grey.g = .2;
-  grey.b = .2;
-  for (int x = 0; x < (w); x++) {
-    for (int y = 0; y < (h); y++) {
-      colours[(y * w * 3) + (x * 3)] = grey.r;
-      colours[(y * w * 3) + (x * 3) + 1] = grey.b;
-      colours[(y * w * 3) + (x * 3) + 2] = grey.g;
+void fluidEngine::SandToColour(float colours[]) {
+  const Colour3 white(1, 1, 1);
+  const Colour3 red(1, 0, 0);
+  const Colour3 grey(.2, .2, .2);
+
+  for (int x = 0; x < (FB_SIZE); x++) {
+    for (int y = 0; y < (FB_SIZE); y++) {
+      colours[(y * FB_SIZE * 3) + (x * 3)] = grey.r;
+      colours[(y * FB_SIZE * 3) + (x * 3) + 1] = grey.b;
+      colours[(y * FB_SIZE * 3) + (x * 3) + 2] = grey.g;
     }
   }
 
   for (int i = 0; i < sand.size(); i++) {
-    Vector2Int rounded = VectorRoundToInt(&sand[i].position);
+    Vector2Int rounded(0, 0);
+    VectorRoundToInt(&sand[i].position, &rounded);
 
     if (rounded.x < 0 || rounded.x > (FB_SIZE - 1) || rounded.y < 0 ||
         rounded.y > (FB_SIZE - 1)) {
@@ -231,16 +221,14 @@ float* fluidEngine::SandToColour(float colours[]) {
       // std::cout << rounded.x << std::endl;
       if (i == 0) {
         // Marker to follow
-        colours[(rounded.y * w * 3) + (rounded.x * 3)] = red.r;
-        colours[(rounded.y * w * 3) + (rounded.x * 3) + 1] = red.b;
-        colours[(rounded.y * w * 3) + (rounded.x * 3) + 2] = red.g;
+        colours[(rounded.y * FB_SIZE * 3) + (rounded.x * 3)] = red.r;
+        colours[(rounded.y * FB_SIZE * 3) + (rounded.x * 3) + 1] = red.b;
+        colours[(rounded.y * FB_SIZE * 3) + (rounded.x * 3) + 2] = red.g;
       } else {
-        colours[(rounded.y * w * 3) + (rounded.x * 3)] = white.r;
-        colours[(rounded.y * w * 3) + (rounded.x * 3) + 1] = white.b;
-        colours[(rounded.y * w * 3) + (rounded.x * 3) + 2] = white.g;
+        colours[(rounded.y * FB_SIZE * 3) + (rounded.x * 3)] = white.r;
+        colours[(rounded.y * FB_SIZE * 3) + (rounded.x * 3) + 1] = white.b;
+        colours[(rounded.y * FB_SIZE * 3) + (rounded.x * 3) + 2] = white.g;
       }
     }
   }
-
-  return colours;
 }
