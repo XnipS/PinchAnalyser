@@ -22,7 +22,10 @@ int main(int argc, char *args[]) {
   fengine->Start(engine);
 
   engine->UpdateConfig(&fengine->cfg_gravity, &fengine->cfg_dampen,
-                       &fengine->cfg_size, &fengine->cfg_heat);
+                       &fengine->cfg_size, &fengine->cfg_heat,
+                       &fengine->cfg_fluid_holes, &fengine->cfg_fluid_power);
+
+  printf("%i", fengine->SandCount());
 
   if (FB_MOLECULE_SPAWNRANDOM) {
     for (int i = 0; i < FB_MOLECULE_COUNT; i++) {
@@ -45,6 +48,7 @@ int main(int argc, char *args[]) {
 
     fengine->SandToColour(&pixels[0]);
     engine->UpdateImage(&pixels[0]);  // HERE
+    engine->val_totalSand = fengine->SandCount();
     engine->Update();
     engine->Render();
 

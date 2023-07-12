@@ -32,6 +32,8 @@ float* var_gravity;
 float* var_dampen;
 float* var_size;
 float* var_heat;
+int* var_holes;
+float* var_holePower;
 
 // Simple helper function to load an image into a OpenGL texture with common
 // settings
@@ -97,11 +99,13 @@ void renderEngine::UpdateImage(float* colours) {
 }
 
 void renderEngine::UpdateConfig(float* gravity, float* damp, float* size,
-                                float* heat) {
+                                float* heat, int* holeCount, float* holePow) {
   var_gravity = gravity;
   var_dampen = damp;
   var_size = size;
   var_heat = heat;
+  var_holes = holeCount;
+  var_holePower = holePow;
 }
 
 void renderEngine::Initialise(const char* title, int w, int h) {
@@ -158,7 +162,7 @@ void renderEngine::Update() {
   ImGui::BeginMainMenuBar();
   ImGui::Text("NIP-Engine");
   ImGui::Separator();
-  ImGui::Text("v0.1");
+  ImGui::Text(FB_VERSION);
   ImGui::EndMainMenuBar();
 
   // Main Simulation
@@ -175,10 +179,29 @@ void renderEngine::Update() {
   ImGui::Begin("Toolbox", NULL,
                ImGuiWindowFlags_NoResize | ImGuiWindowFlags_AlwaysAutoResize |
                    ImGuiWindowFlags_NoCollapse);
-  ImGui::InputFloat("Gravity", var_gravity, 0, 10);
-  ImGui::SliderFloat("Dampen", var_dampen, 0, 10);
+  ImGui::SliderFloat("Gravity", var_gravity, 0, 1);
+  ImGui::SliderFloat("Dampen", var_dampen, 0, 1);
   ImGui::SliderFloat("Size", var_size, 0, 10);
   ImGui::SliderFloat("Heat", var_heat, 0, 1);
+  ImGui::SliderInt("Fluid Holes", var_holes, 1, 51);
+  ImGui::SliderFloat("Fluid Power", var_holePower, 0, 1);
+  ImGui::Text("Total: %i", val_totalSand);
+
+  addSand = 0;
+  ImGui::SameLine();
+  if (ImGui::Button("Add 1x")) {
+    addSand = 1;
+  }
+  ImGui::SameLine();
+  if (ImGui::Button("Add 10x")) {
+    addSand = 10;
+  }
+  ImGui::SameLine();
+  if (ImGui::Button("Add 100x")) {
+    addSand = 100;
+  }
+  ImGui::SameLine();
+  clearAllSand = ImGui::Button("Clear");
 
   ImGui::End();
 

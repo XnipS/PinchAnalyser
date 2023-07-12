@@ -10,12 +10,12 @@ fluidEngine::fluidEngine(){};
 fluidEngine::~fluidEngine(){};
 
 renderEngine* renderer;
+Vector2 startingVelocity(0.1, 0.1);
 
 // Spawn new particle
 void fluidEngine::AddSandAtPos(int x, int y) {
   fluidParticle particle = *new fluidParticle(x, y);
-  particle.velocity.y = 0.1;  //-0.1;
-  particle.velocity.x = 0.1;  // 0.2;
+  particle.velocity = startingVelocity;
   sand.push_back(particle);
 };
 // Snap vector to grid
@@ -61,6 +61,17 @@ void fluidEngine::Start(renderEngine* ren) {
 };
 
 void fluidEngine::Update() {
+  if (renderer->AddSand() != 0) {
+    for (int i = 0; i < renderer->AddSand(); i++) {
+      int x, y;
+      x = (rand() % FB_SIZE);
+      y = (rand() % FB_SIZE);
+      AddSandAtPos(x, y);
+    }
+  }
+  if (renderer->ClearSand()) {
+    sand.clear();
+  }
   // TOTAL KINETIC ENERGY
   float energy = 0;
   for (int t = 0; t < sand.size(); t++) {
@@ -69,16 +80,23 @@ void fluidEngine::Update() {
   }
   if (renderer->currentDebugInfo.size() >= 2) {
     std::ostringstream ss;
-    ss << "Total Energy: ";
+    ss << "Current Energy: ";
     ss << std::to_string(energy);
     ss << " J";
     renderer->currentDebugInfo[1] = ss.str();
+
+    float starting = VectorMagnitude(&startingVelocity);
+
+    starting = (0.5 * starting * starting) * SandCount();
+
+    std::ostringstream sss;
+    sss << "Starting Energy: ";
+    sss << std::to_string(starting);
+    sss << " J";
+    renderer->currentDebugInfo[0] = sss.str();
+
   } else {
-    std::ostringstream ss;
-    ss << "Starting Energy: ";
-    ss << std::to_string(energy);
-    ss << " J";
-    renderer->currentDebugInfo.push_back(ss.str());
+    renderer->currentDebugInfo.push_back("INCOMING!");
     renderer->currentDebugInfo.push_back("INCOMING!");
   }
 
@@ -91,6 +109,10 @@ void fluidEngine::Update() {
     Vector2 nextPos = VectorSum(&sand[i].position, &sand[i].velocity);
     Vector2Int round(0, 0);
     VectorRoundToInt(&nextPos, &round);
+    // Apply drag
+    if (round.x % (FB_SIZE / cfg_fluid_holes) == 0) {
+      sand[i].velocity.y -= cfg_fluid_power;
+    }
     // Keep/collide in/with container
     if (round.x < 0 && sand[i].velocity.x < 0) {
       sand[i].position.x = 0;
@@ -177,17 +199,27 @@ void fluidEngine::Update() {
 
 void fluidEngine::SandToColour(float colours[]) {
   const Colour3 white(1, 1, 1);
+  const Colour3 blue(0, 1, 0);
   const Colour3 red(1, 0, 0);
   const Colour3 grey(.2, .2, .2);
 
+  // Clear old colours
   for (int x = 0; x < (FB_SIZE); x++) {
     for (int y = 0; y < (FB_SIZE); y++) {
-      colours[(y * FB_SIZE * 3) + (x * 3)] = grey.r;
-      colours[(y * FB_SIZE * 3) + (x * 3) + 1] = grey.b;
-      colours[(y * FB_SIZE * 3) + (x * 3) + 2] = grey.g;
+      // Visualise fluid holes
+      if ((x % (FB_SIZE / cfg_fluid_holes) == 0 && y == FB_SIZE - 1)) {
+        colours[(y * FB_SIZE * 3) + (x * 3)] = blue.r;
+        colours[(y * FB_SIZE * 3) + (x * 3) + 1] = blue.b;
+        colours[(y * FB_SIZE * 3) + (x * 3) + 2] = blue.g;
+      } else {
+        colours[(y * FB_SIZE * 3) + (x * 3)] = grey.r;
+        colours[(y * FB_SIZE * 3) + (x * 3) + 1] = grey.b;
+        colours[(y * FB_SIZE * 3) + (x * 3) + 2] = grey.g;
+      }
     }
   }
 
+  // Render sand
   for (int i = 0; i < sand.size(); i++) {
     Vector2Int rounded(0, 0);
     VectorRoundToInt(&sand[i].position, &rounded);
@@ -208,8 +240,6 @@ void fluidEngine::SandToColour(float colours[]) {
         colours[(rounded.y * FB_SIZE * 3) + (rounded.x * 3) + 1] = white.b;
         colours[(rounded.y * FB_SIZE * 3) + (rounded.x * 3) + 2] = white.g;
       }
-
-      // Visualise fluid holes TODO
     }
   }
 }
