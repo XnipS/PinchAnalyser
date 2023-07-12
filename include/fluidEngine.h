@@ -1,6 +1,4 @@
 #pragma once
-#include <X11/X.h>
-
 #include <vector>
 
 #include "renderEngine.h"
@@ -44,6 +42,8 @@ class fluidEngine {
   float cfg_dampen = 0.5;
   float cfg_size = 1;
   float cfg_heat = 0;
+  int cfg_fluid_holes = 3;
+  float cfg_fluid_power = 1;
 
  private:
   std::vector<fluidParticle> sand;

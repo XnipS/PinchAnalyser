@@ -1,81 +1,45 @@
 #include "../include/fluidEngine.h"
 
-#include <SDL2/SDL_log.h>
-#include <X11/X.h>
-#include <math.h>
-
 #include <cmath>
-#include <cstddef>
-#include <cstdio>
-#include <cstring>
-#include <iostream>
-#include <new>
-#include <ostream>
 #include <sstream>
-#include <string>
 
 #include "../include/core.h"
 #include "../include/renderEngine.h"
-#include "imgui.h"
 
 fluidEngine::fluidEngine(){};
 fluidEngine::~fluidEngine(){};
 
 renderEngine* renderer;
 
+// Spawn new particle
 void fluidEngine::AddSandAtPos(int x, int y) {
   fluidParticle particle = *new fluidParticle(x, y);
   particle.velocity.y = 0.1;  //-0.1;
   particle.velocity.x = 0.1;  // 0.2;
   sand.push_back(particle);
 };
-
-std::vector<fluidParticle> Duplicate(std::vector<fluidParticle>& input) {
-  return input;
-};
-
+// Snap vector to grid
 static void VectorRoundToInt(Vector2* input, Vector2Int* output) {
   output->x = std::floor(input->x);
   output->y = std::floor(input->y);
 }
+// Get magnitude of vector
 static double VectorMagnitude(Vector2* input) {
   double magnitude = std::sqrt(input->x * input->x + input->y * input->y);
   return magnitude;
 }
-static Vector2 VectorNormalise(Vector2* input) {
-  double magnitude = VectorMagnitude(input);
-  if (magnitude != 0.0) {
-    input->x /= magnitude;
-    input->y /= magnitude;
-  }
-
-  return *input;
-}
+// Get distance between two vectors
 static float VectorDistance(Vector2* u, Vector2* v) {
   float output = std::sqrt(pow((u->x - v->x), 2) + pow((u->y - v->y), 2));
   return output;
 }
+// Sum two vectors together
 static Vector2 VectorSum(Vector2* i, Vector2* j) {
   i->x += j->x;
   i->y += j->y;
   return *i;
 }
-static Vector2 VectorSubtraction(Vector2* i, Vector2* j) {
-  i->x -= j->x;
-  i->y -= j->y;
-  return *i;
-}
-static float VectorDot(Vector2* i, Vector2* j) {
-  float output = 0;
-  output += i->x * j->x;
-  output += i->y * j->y;
-  return output;
-}
-static Vector2 VectorMulScalar(Vector2* i, float j) {
-  i->x *= j;
-  i->y *= j;
-  return *i;
-}
+// Sum vector by scalar
 static Vector2 VectorSumScalar(Vector2* i, float j) {
   if (i->x > 0) {
     i->x += j;
@@ -118,15 +82,16 @@ void fluidEngine::Update() {
     renderer->currentDebugInfo.push_back("INCOMING!");
   }
 
-  // std::vector<fluidParticle> oldSand = Duplicate(sand);
-
   for (int i = 0; i < sand.size(); i++) {
+    // Sum gravity
     sand[i].velocity.y += cfg_gravity;
+    // Sum heat energy
     VectorSumScalar(&sand[i].velocity, cfg_heat);
+    // Calculate next position
     Vector2 nextPos = VectorSum(&sand[i].position, &sand[i].velocity);
     Vector2Int round(0, 0);
     VectorRoundToInt(&nextPos, &round);
-
+    // Keep/collide in/with container
     if (round.x < 0 && sand[i].velocity.x < 0) {
       sand[i].position.x = 0;
       sand[i].velocity.x = -sand[i].velocity.x * (1.0 - cfg_dampen);
@@ -139,8 +104,8 @@ void fluidEngine::Update() {
     } else if (round.y > (FB_SIZE - 1) && sand[i].velocity.y > 0) {
       sand[i].position.y = FB_SIZE - 1;
       sand[i].velocity.y = -sand[i].velocity.y * (1.0 - cfg_dampen);
-
     } else {
+      // Collision check other particles
       for (int j = 0; j < sand.size(); j++) {
         if (i != j) {
           double dx = sand[j].position.x - sand[i].position.x;
@@ -151,7 +116,7 @@ void fluidEngine::Update() {
 
             if (distance <= cfg_size) {
               if (distance == 0) {
-                printf("Zero distance");
+                printf("Zero distance\n");
                 continue;
               }
               double nx = dx / distance;
@@ -185,7 +150,7 @@ void fluidEngine::Update() {
               sand[j].velocity.x += dv2n * nx;
               sand[j].velocity.y += dv2n * ny;
 
-              // Movement
+              // Find suitable location
               while (distance <= cfg_size) {
                 nextPos = VectorSum(&sand[i].position, &sand[i].velocity);
                 sand[i].position = nextPos;
@@ -194,7 +159,7 @@ void fluidEngine::Update() {
                 dy = sand[j].position.y - sand[i].position.y;
                 distance = std::sqrt(dx * dx + dy * dy);
                 if (distance == 0) {
-                  printf("Zero distance");
+                  printf("Zero distance\n");
                   break;
                 }
               }
@@ -210,7 +175,6 @@ void fluidEngine::Update() {
   }
 }
 
-;
 void fluidEngine::SandToColour(float colours[]) {
   const Colour3 white(1, 1, 1);
   const Colour3 red(1, 0, 0);
@@ -244,6 +208,8 @@ void fluidEngine::SandToColour(float colours[]) {
         colours[(rounded.y * FB_SIZE * 3) + (rounded.x * 3) + 1] = white.b;
         colours[(rounded.y * FB_SIZE * 3) + (rounded.x * 3) + 2] = white.g;
       }
+
+      // Visualise fluid holes TODO
     }
   }
 }
