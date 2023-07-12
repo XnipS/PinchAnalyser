@@ -71,9 +71,23 @@ static float VectorDot(Vector2* i, Vector2* j) {
   output += i->y * j->y;
   return output;
 }
-static Vector2 VectorScalar(Vector2* i, float j) {
+static Vector2 VectorMulScalar(Vector2* i, float j) {
   i->x *= j;
   i->y *= j;
+  return *i;
+}
+static Vector2 VectorSumScalar(Vector2* i, float j) {
+  if (i->x > 0) {
+    i->x += j;
+  } else {
+    i->x -= j;
+  }
+
+  if (i->y > 0) {
+    i->y += j;
+  } else {
+    i->y -= j;
+  }
   return *i;
 }
 
@@ -108,6 +122,7 @@ void fluidEngine::Update() {
 
   for (int i = 0; i < sand.size(); i++) {
     sand[i].velocity.y += cfg_gravity;
+    VectorSumScalar(&sand[i].velocity, cfg_heat);
     Vector2 nextPos = VectorSum(&sand[i].position, &sand[i].velocity);
     Vector2Int round(0, 0);
     VectorRoundToInt(&nextPos, &round);

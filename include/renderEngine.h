@@ -20,7 +20,7 @@ class renderEngine {
   ~renderEngine();
 
   void Initialise(const char* title, int w, int h);
-  void UpdateConfig(float* gravity, float* damp, float* size);
+  void UpdateConfig(float* gravity, float* damp, float* size, float* heat);
   void UpdateImage(float* colours);
   void FloodImage(Colour3 col);
   void Update();

@@ -43,6 +43,7 @@ class fluidEngine {
   float cfg_gravity = 0.5;
   float cfg_dampen = 0.5;
   float cfg_size = 1;
+  float cfg_heat = 0;
 
  private:
   std::vector<fluidParticle> sand;

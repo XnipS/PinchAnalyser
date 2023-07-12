@@ -31,6 +31,7 @@ GLuint my_image_texture = 0;
 float* var_gravity;
 float* var_dampen;
 float* var_size;
+float* var_heat;
 
 // Simple helper function to load an image into a OpenGL texture with common
 // settings
@@ -95,10 +96,12 @@ void renderEngine::UpdateImage(float* colours) {
   glBindTexture(GL_TEXTURE_2D, 0);
 }
 
-void renderEngine::UpdateConfig(float* gravity, float* damp, float* size) {
+void renderEngine::UpdateConfig(float* gravity, float* damp, float* size,
+                                float* heat) {
   var_gravity = gravity;
   var_dampen = damp;
   var_size = size;
+  var_heat = heat;
 }
 
 void renderEngine::Initialise(const char* title, int w, int h) {
@@ -172,9 +175,10 @@ void renderEngine::Update() {
   ImGui::Begin("Toolbox", NULL,
                ImGuiWindowFlags_NoResize | ImGuiWindowFlags_AlwaysAutoResize |
                    ImGuiWindowFlags_NoCollapse);
-  ImGui::SliderFloat("Gravity", var_gravity, -10, 10);
+  ImGui::InputFloat("Gravity", var_gravity, 0, 10);
   ImGui::SliderFloat("Dampen", var_dampen, 0, 10);
   ImGui::SliderFloat("Size", var_size, 0, 10);
+  ImGui::SliderFloat("Heat", var_heat, 0, 1);
 
   ImGui::End();
 

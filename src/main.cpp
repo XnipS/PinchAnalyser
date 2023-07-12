@@ -22,7 +22,7 @@ int main(int argc, char *args[]) {
   fengine->Start(engine);
 
   engine->UpdateConfig(&fengine->cfg_gravity, &fengine->cfg_dampen,
-                       &fengine->cfg_size);
+                       &fengine->cfg_size, &fengine->cfg_heat);
 
   if (FB_MOLECULE_SPAWNRANDOM) {
     for (int i = 0; i < FB_MOLECULE_COUNT; i++) {
