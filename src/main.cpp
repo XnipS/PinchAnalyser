@@ -1,6 +1,6 @@
-#include <SDL2/SDL.h>
-#include <SDL2/SDL_render.h>
-#include <SDL2/SDL_timer.h>
+#include <SDL.h>
+#include <SDL_render.h>
+#include <SDL_timer.h>
 
 #include <cstdio>
 #include <iostream>

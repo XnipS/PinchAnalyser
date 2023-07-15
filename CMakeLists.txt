@@ -6,8 +6,11 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 # Glob files
 file(GLOB_RECURSE SOURCE_FILES src/*.cpp)
 file(GLOB_RECURSE HEADER_FILES include/*.h)
-# Glob imgui submodule
+# Get imgui path
 set(IMGUI_PATH depend/imgui)
+# Get SDL2 from package manager
+find_package(SDL2 REQUIRED)
+# Glob imgui
 file(GLOB IMGUI_GLOB
     ${IMGUI_PATH}/*.cpp
     ${IMGUI_PATH}/*.h
@@ -15,20 +18,21 @@ file(GLOB IMGUI_GLOB
     ${IMGUI_PATH}/backends/imgui_impl_sdl2.cpp
 	${IMGUI_PATH}/backends/imgui_impl_opengl3.cpp
 )
+# Imgui include
 INCLUDE_DIRECTORIES(
     ${IMGUI_PATH}
-	"/home/user/libs/stb"
 )
-# Imgui Lib
+# BUILD imgui
 add_library(imgui STATIC ${IMGUI_GLOB})
 target_link_libraries(imgui SDL2)
 target_include_directories(imgui PUBLIC SDL2 SDL2main)
-# FluidisedBed Lib
+# BUILD FluidisedBed Lib
 add_library(FluidisedBed SHARED
 ${SOURCE_FILES}
 ${HEADER_FILES}
 )
-# Main Simulator executable
+target_include_directories(FluidisedBed PRIVATE imgui ${SDL2_INCLUDE_DIRS})
+# BUILD Main Simulator Executable
 add_executable(Simulator src/main.cpp)
-target_include_directories( FluidisedBed PUBLIC imgui )
+target_include_directories(Simulator PRIVATE ${SDL2_INCLUDE_DIRS} )
 target_link_libraries(Simulator PUBLIC SDL2 FluidisedBed imgui OpenGL)
