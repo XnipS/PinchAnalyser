@@ -7,3 +7,8 @@ build/
 # Depends
 depend/
 imgui.ini
+# Windows
+.vs/
+x64/
+vclib/
+FluidisedBed.vcxproj.user
