@@ -47,7 +47,7 @@ int main(int argc, char *args[]) {
     fengine->Update();
 
     fengine->SandToColour(&pixels[0]);
-   engine->UpdateImage(&pixels[0]);  // HERE
+    engine->UpdateImage(&pixels[0]);  // HERE
     engine->val_totalSand = fengine->SandCount();
     engine->Update();
     engine->Render();

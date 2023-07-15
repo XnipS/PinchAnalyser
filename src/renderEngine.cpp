@@ -1,29 +1,26 @@
 #include "../include/renderEngine.h"
-
-#if defined (_WIN64)
-#include <d3d11.h>
-#include "../depend/imgui/backends/imgui_impl_dx11.h"
+#if defined(_WIN64)
 #include <SDL_syswm.h>
+#include <d3d11.h>
+
+#include "../depend/imgui/backends/imgui_impl_dx11.h"
 #else
 #include <GL/gl.h>
 #include <GL/glext.h>
+
 #include "../depend/imgui/backends/imgui_impl_opengl3.h"
 #endif
-
 #include <SDL.h>
 #include <SDL_events.h>
 #include <SDL_video.h>
 
-#include <cstdio>
-
-#include "../include/core.h"
-
 #include <cstddef>
+#include <cstdio>
 #include <iostream>
-
 
 #include "../depend/imgui/backends/imgui_impl_sdl2.h"
 #include "../depend/imgui/imgui.h"
+#include "../include/core.h"
 
 renderEngine::renderEngine() {}
 renderEngine::~renderEngine() {}
@@ -32,7 +29,8 @@ SDL_GLContext gl_context;
 ImGuiIO io;
 ImVec4 clear_color = ImVec4(0.45f, 0.55f, 0.60f, 1.00f);
 
-#if defined (_WIN64)
+// Fluid image tank variables
+#if defined(_WIN64)
 ID3D11ShaderResourceView* my_image_texture = NULL;
 D3D11_SHADER_RESOURCE_VIEW_DESC srvDesc;
 D3D11_SUBRESOURCE_DATA subResource;
@@ -42,6 +40,7 @@ ID3D11Texture2D* pTexture = NULL;
 GLuint my_image_texture = 0;
 #endif
 
+// FluidEngine variables
 float* var_gravity;
 float* var_dampen;
 float* var_size;
@@ -49,7 +48,8 @@ float* var_heat;
 int* var_holes;
 float* var_holePower;
 
-#if defined (_WIN64)
+// DirectX11 variables
+#if defined(_WIN64)
 // Data
 static ID3D11Device* g_pd3dDevice = nullptr;
 static ID3D11DeviceContext* g_pd3dDeviceContext = nullptr;
@@ -60,10 +60,9 @@ bool CreateDeviceD3D(HWND hWnd);
 void CleanupDeviceD3D();
 void CreateRenderTarget();
 void CleanupRenderTarget();
-
 #endif
 
-
+// Flood image with single colour
 void renderEngine::FloodImage(Colour3 col) {
   float pixels[FB_SIZE * FB_SIZE * 3];
   for (int x = 0; x < (FB_SIZE); x++) {
@@ -73,47 +72,35 @@ void renderEngine::FloodImage(Colour3 col) {
       pixels[(y * FB_SIZE * 3) + (x * 3) + 2] = col.g;
     }
   }
-
   UpdateImage(&pixels[0]);
 }
 
+// Set image pixels
 void renderEngine::UpdateImage(float* colours) {
-#if defined (_WIN64)
-
-    D3D11_MAPPED_SUBRESOURCE mappedSubRes;
-   // ZeroMemory(&mappedSubRes, sizeof(D3D11_MAPPED_SUBRESOURCE));
-    ID3D11Resource* res;
-    my_image_texture->GetResource(&res);
- // mappedSubRes.DepthPitch = 0;
-   // mappedSubRes.RowPitch = 0; // subResource.SysMemPitch;
-   g_pd3dDeviceContext->Map(res, 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedSubRes);
-    //  Update the vertex buffer here.
-    memcpy(mappedSubRes.pData, colours, FB_SIZE * FB_SIZE * 3 * 4);
-    //  Reenable GPU access to the vertex buffer data.
-   g_pd3dDeviceContext->Unmap(res, 0);
-
-    //subResource.pSysMem = colours;
-
-   // g_pd3dDevice->CreateTexture2D(&desc, &subResource, &pTexture);
-
-
-
-  //  g_pd3dDevice->CreateShaderResourceView(pTexture, &srvDesc, &my_image_texture);
-    
-
+#if defined(_WIN64)
+  D3D11_MAPPED_SUBRESOURCE mappedSubRes;
+  // ZeroMemory(&mappedSubRes, sizeof(D3D11_MAPPED_SUBRESOURCE));
+  ID3D11Resource* res;
+  my_image_texture->GetResource(&res);
+  g_pd3dDeviceContext->Map(res, 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedSubRes);
+  //  Update the vertex buffer here.
+  memcpy(mappedSubRes.pData, colours, FB_SIZE * FB_SIZE * 3 * 4);
+  //  Reenable GPU access to the vertex buffer data.
+  g_pd3dDeviceContext->Unmap(res, 0);
 #else
 
- glGenTextures(1, &my_image_texture);
- glBindTexture(GL_TEXTURE_2D, my_image_texture);
- glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
- glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
- glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
- glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, FB_SIZE, FB_SIZE, 0, GL_RGB, GL_FLOAT,
-              colours);
- glBindTexture(GL_TEXTURE_2D, 0);
+  glGenTextures(1, &my_image_texture);
+  glBindTexture(GL_TEXTURE_2D, my_image_texture);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+  glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, FB_SIZE, FB_SIZE, 0, GL_RGB, GL_FLOAT,
+               colours);
+  glBindTexture(GL_TEXTURE_2D, 0);
 #endif
 }
 
+// Transfer variables
 void renderEngine::UpdateConfig(float* gravity, float* damp, float* size,
                                 float* heat, int* holeCount, float* holePow) {
   var_gravity = gravity;
@@ -124,10 +111,12 @@ void renderEngine::UpdateConfig(float* gravity, float* damp, float* size,
   var_holePower = holePow;
 }
 
+// Start engine
 void renderEngine::Initialise(const char* title, int w, int h) {
-
-#if defined (_WIN64)
-    SDL_WindowFlags window_flags = (SDL_WindowFlags)(SDL_WINDOW_RESIZABLE | SDL_WINDOW_ALLOW_HIGHDPI);
+  // Window flags
+#if defined(_WIN64)
+  SDL_WindowFlags window_flags =
+      (SDL_WindowFlags)(SDL_WINDOW_RESIZABLE | SDL_WINDOW_ALLOW_HIGHDPI);
 #else
   // SDL Attributes
   SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
@@ -139,49 +128,55 @@ void renderEngine::Initialise(const char* title, int w, int h) {
 #endif
   window = SDL_CreateWindow(title, SDL_WINDOWPOS_CENTERED,
                             SDL_WINDOWPOS_CENTERED, w, h, window_flags);
-#if defined (_WIN64)
+
+  // Initialise renderer
+#if defined(_WIN64)
   SDL_SysWMinfo wmInfo;
   SDL_VERSION(&wmInfo.version);
   SDL_GetWindowWMInfo(window, &wmInfo);
   HWND hwnd = (HWND)wmInfo.info.win.window;
 
   // Initialize Direct3D
-  if (!CreateDeviceD3D(hwnd))
-  {
-      CleanupDeviceD3D();
-      exit(1);
+  if (!CreateDeviceD3D(hwnd)) {
+    CleanupDeviceD3D();
+    exit(1);
   }
 #else
   gl_context = SDL_GL_CreateContext(window);
   SDL_GL_MakeCurrent(window, gl_context);
 #endif
+
   // Setup ImGui context
   IMGUI_CHECKVERSION();
-
   ImGui::CreateContext();
-  io = ImGui::GetIO(); (void)io;
+  io = ImGui::GetIO();
+  (void)io;
   io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;
   ImGui::GetIO().ConfigFlags |= ImGuiConfigFlags_DockingEnable;
-  // Setup Platform/Renderer backends
 
-#if defined (_WIN64)
+  // Setup Platform/Renderer backends
+#if defined(_WIN64)
   ImGui_ImplSDL2_InitForD3D(window);
   ImGui_ImplDX11_Init(g_pd3dDevice, g_pd3dDeviceContext);
 #else
   ImGui_ImplSDL2_InitForOpenGL(window, gl_context);
   ImGui_ImplOpenGL3_Init();
 #endif
+
+  // Setup Done
   isRunning = true;
+
   // Initialise texture on gpu
+#if defined(_WIN64)
   float pixels[FB_SIZE * FB_SIZE * 3];
   for (int x = 0; x < (FB_SIZE); x++) {
-      for (int y = 0; y < (FB_SIZE); y++) {
-          pixels[(y * FB_SIZE * 3) + (x * 3)] =1;
-          pixels[(y * FB_SIZE * 3) + (x * 3) + 1] = 1;
-          pixels[(y * FB_SIZE * 3) + (x * 3) + 2] = 1;
-      }
+    for (int y = 0; y < (FB_SIZE); y++) {
+      pixels[(y * FB_SIZE * 3) + (x * 3)] = 1;
+      pixels[(y * FB_SIZE * 3) + (x * 3) + 1] = 1;
+      pixels[(y * FB_SIZE * 3) + (x * 3) + 2] = 1;
+    }
   }
-#if defined (_WIN64)
+
   ZeroMemory(&desc, sizeof(desc));
   desc.Width = FB_SIZE;
   desc.Height = FB_SIZE;
@@ -195,7 +190,8 @@ void renderEngine::Initialise(const char* title, int w, int h) {
   desc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
 
   subResource.pSysMem = pixels;
-  subResource.SysMemPitch = FB_SIZE * 3 * 4; // I HAVE NO IDEA WHY BUT THIS FIXES THE TILING ISSUE
+  subResource.SysMemPitch =
+      FB_SIZE * 3 * 4;  // I HAVE NO IDEA WHY BUT THIS FIXES THE TILING ISSUE
   subResource.SysMemSlicePitch = 0;
 
   ZeroMemory(&srvDesc, sizeof(srvDesc));
@@ -205,17 +201,19 @@ void renderEngine::Initialise(const char* title, int w, int h) {
 
   g_pd3dDevice->CreateTexture2D(&desc, &subResource, &pTexture);
 
-
-
   g_pd3dDevice->CreateShaderResourceView(pTexture, &srvDesc, &my_image_texture);
 #else
   glGenTextures(1, &my_image_texture);
 #endif
-    // Setup default tank
+
+  // Setup default tank
   const Colour3 col(.2, .2, .2);
   FloodImage(col);
 }
+
+// Tick renderengine
 void renderEngine::Update() {
+  // Tick
   tick++;
 
   // Handle events
@@ -230,7 +228,7 @@ void renderEngine::Update() {
   }
 
   //  Start the ImGui frame
-#if defined (_WIN64)
+#if defined(_WIN64)
   ImGui_ImplDX11_NewFrame();
   ImGui_ImplSDL2_NewFrame();
 #else
@@ -255,7 +253,7 @@ void renderEngine::Update() {
                    ImGuiWindowFlags_NoCollapse);
   ImGui::Text("Size = %d x %d. Tickrate = %d. Tick = %d.", FB_SIZE, FB_SIZE,
               FB_TARGET_TICKRATE, tick);
- ImGui::Image((void*)(intptr_t)my_image_texture,
+  ImGui::Image((void*)(intptr_t)my_image_texture,
                ImVec2(FB_SIZE * FB_IMAGE_SCALE, FB_SIZE * FB_IMAGE_SCALE));
   ImGui::End();
 
@@ -316,21 +314,26 @@ void renderEngine::Update() {
   }
 }
 
+// Render
 void renderEngine::Render() {
-  // Render
+  // Imgui Render
   ImGui::Render();
-#if defined (_WIN64)
-  const float clear_color_with_alpha[4] = { clear_color.x * clear_color.w, clear_color.y * clear_color.w, clear_color.z * clear_color.w, clear_color.w };
+
+  // Clear and render
+#if defined(_WIN64)
+  const float clear_color_with_alpha[4] = {
+      clear_color.x * clear_color.w, clear_color.y * clear_color.w,
+      clear_color.z * clear_color.w, clear_color.w};
   g_pd3dDeviceContext->OMSetRenderTargets(1, &g_mainRenderTargetView, nullptr);
-  g_pd3dDeviceContext->ClearRenderTargetView(g_mainRenderTargetView, clear_color_with_alpha);
+  g_pd3dDeviceContext->ClearRenderTargetView(g_mainRenderTargetView,
+                                             clear_color_with_alpha);
   ImGui_ImplDX11_RenderDrawData(ImGui::GetDrawData());
 
   // Update and Render additional Platform Windows
-  if (io.ConfigFlags & ImGuiConfigFlags_ViewportsEnable)
-  {
-      ImGui::UpdatePlatformWindows();
-      ImGui::RenderPlatformWindowsDefault();
-}
+  if (io.ConfigFlags & ImGuiConfigFlags_ViewportsEnable) {
+    ImGui::UpdatePlatformWindows();
+    ImGui::RenderPlatformWindowsDefault();
+  }
   g_pSwapChain->Present(0, 0);
 #else
   glViewport(0, 0, (int)io.DisplaySize.x, (int)io.DisplaySize.y);
@@ -342,13 +345,15 @@ void renderEngine::Render() {
 #endif
 }
 
+// Clean
 void renderEngine::Clean() {
-  // Clean Imgui
-#if defined (_WIN64)
-    ImGui_ImplDX11_Shutdown();
-#else 
-    ImGui_ImplOpenGL3_Shutdown();
+  // Shutdown imgui graphic implementation
+#if defined(_WIN64)
+  ImGui_ImplDX11_Shutdown();
+#else
+  ImGui_ImplOpenGL3_Shutdown();
 #endif
+  // Clean Imgui
   ImGui_ImplSDL2_Shutdown();
   ImGui::DestroyContext();
   // Clean SDL
@@ -358,57 +363,71 @@ void renderEngine::Clean() {
   std::cout << "Engine Cleaned!" << std::endl;
 }
 
-#if defined (_WIN64)
 // Helper functions to use DirectX11
-bool CreateDeviceD3D(HWND hWnd)
-{
-    // Setup swap chain
-    DXGI_SWAP_CHAIN_DESC sd;
-    ZeroMemory(&sd, sizeof(sd));
-    sd.BufferCount = 2;
-    sd.BufferDesc.Width = 0;
-    sd.BufferDesc.Height = 0;
-    sd.BufferDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
-    sd.BufferDesc.RefreshRate.Numerator = 60;
-    sd.BufferDesc.RefreshRate.Denominator = 1;
-    sd.Flags = DXGI_SWAP_CHAIN_FLAG_ALLOW_MODE_SWITCH;
-    sd.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT;
-    sd.OutputWindow = hWnd;
-    sd.SampleDesc.Count = 1;
-    sd.SampleDesc.Quality = 0;
-    sd.Windowed = TRUE;
-    sd.SwapEffect = DXGI_SWAP_EFFECT_DISCARD;
+#if defined(_WIN64)
+bool CreateDeviceD3D(HWND hWnd) {
+  // Setup swap chain
+  DXGI_SWAP_CHAIN_DESC sd;
+  ZeroMemory(&sd, sizeof(sd));
+  sd.BufferCount = 2;
+  sd.BufferDesc.Width = 0;
+  sd.BufferDesc.Height = 0;
+  sd.BufferDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
+  sd.BufferDesc.RefreshRate.Numerator = 60;
+  sd.BufferDesc.RefreshRate.Denominator = 1;
+  sd.Flags = DXGI_SWAP_CHAIN_FLAG_ALLOW_MODE_SWITCH;
+  sd.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT;
+  sd.OutputWindow = hWnd;
+  sd.SampleDesc.Count = 1;
+  sd.SampleDesc.Quality = 0;
+  sd.Windowed = TRUE;
+  sd.SwapEffect = DXGI_SWAP_EFFECT_DISCARD;
 
-    UINT createDeviceFlags = 0;
-    //createDeviceFlags |= D3D11_CREATE_DEVICE_DEBUG;
-    D3D_FEATURE_LEVEL featureLevel;
-    const D3D_FEATURE_LEVEL featureLevelArray[2] = { D3D_FEATURE_LEVEL_11_0, D3D_FEATURE_LEVEL_10_0, };
-    if (D3D11CreateDeviceAndSwapChain(nullptr, D3D_DRIVER_TYPE_HARDWARE, nullptr, createDeviceFlags, featureLevelArray, 2, D3D11_SDK_VERSION, &sd, &g_pSwapChain, &g_pd3dDevice, &featureLevel, &g_pd3dDeviceContext) != S_OK)
-        return false;
+  UINT createDeviceFlags = 0;
+  // createDeviceFlags |= D3D11_CREATE_DEVICE_DEBUG;
+  D3D_FEATURE_LEVEL featureLevel;
+  const D3D_FEATURE_LEVEL featureLevelArray[2] = {
+      D3D_FEATURE_LEVEL_11_0,
+      D3D_FEATURE_LEVEL_10_0,
+  };
+  if (D3D11CreateDeviceAndSwapChain(
+          nullptr, D3D_DRIVER_TYPE_HARDWARE, nullptr, createDeviceFlags,
+          featureLevelArray, 2, D3D11_SDK_VERSION, &sd, &g_pSwapChain,
+          &g_pd3dDevice, &featureLevel, &g_pd3dDeviceContext) != S_OK)
+    return false;
 
-    CreateRenderTarget();
-    return true;
+  CreateRenderTarget();
+  return true;
 }
 
-void CleanupDeviceD3D()
-{
-    CleanupRenderTarget();
-    if (g_pSwapChain) { g_pSwapChain->Release(); g_pSwapChain = nullptr; }
-    if (g_pd3dDeviceContext) { g_pd3dDeviceContext->Release(); g_pd3dDeviceContext = nullptr; }
-    if (g_pd3dDevice) { g_pd3dDevice->Release(); g_pd3dDevice = nullptr; }
+void CleanupDeviceD3D() {
+  CleanupRenderTarget();
+  if (g_pSwapChain) {
+    g_pSwapChain->Release();
+    g_pSwapChain = nullptr;
+  }
+  if (g_pd3dDeviceContext) {
+    g_pd3dDeviceContext->Release();
+    g_pd3dDeviceContext = nullptr;
+  }
+  if (g_pd3dDevice) {
+    g_pd3dDevice->Release();
+    g_pd3dDevice = nullptr;
+  }
 }
 
-void CreateRenderTarget()
-{
-    ID3D11Texture2D* pBackBuffer;
-    g_pSwapChain->GetBuffer(0, IID_PPV_ARGS(&pBackBuffer));
-    g_pd3dDevice->CreateRenderTargetView(pBackBuffer, nullptr, &g_mainRenderTargetView);
-    pBackBuffer->Release();
+void CreateRenderTarget() {
+  ID3D11Texture2D* pBackBuffer;
+  g_pSwapChain->GetBuffer(0, IID_PPV_ARGS(&pBackBuffer));
+  g_pd3dDevice->CreateRenderTargetView(pBackBuffer, nullptr,
+                                       &g_mainRenderTargetView);
+  pBackBuffer->Release();
 }
 
-void CleanupRenderTarget()
-{
-    if (g_mainRenderTargetView) { g_mainRenderTargetView->Release(); g_mainRenderTargetView = nullptr; }
+void CleanupRenderTarget() {
+  if (g_mainRenderTargetView) {
+    g_mainRenderTargetView->Release();
+    g_mainRenderTargetView = nullptr;
+  }
 }
-
 #endif
