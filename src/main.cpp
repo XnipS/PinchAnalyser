@@ -1,6 +1,6 @@
-#include <SDL2/SDL.h>
-#include <SDL2/SDL_render.h>
-#include <SDL2/SDL_timer.h>
+#include <SDL.h>
+#include <SDL_render.h>
+#include <SDL_timer.h>
 
 #include <cstdio>
 #include <iostream>
@@ -47,7 +47,7 @@ int main(int argc, char *args[]) {
     fengine->Update();
 
     fengine->SandToColour(&pixels[0]);
-    engine->UpdateImage(&pixels[0]);  // HERE
+   engine->UpdateImage(&pixels[0]);  // HERE
     engine->val_totalSand = fengine->SandCount();
     engine->Update();
     engine->Render();
