@@ -14,14 +14,22 @@ struct Colour3 {
   }
 };
 
+struct FluidEngineSettings {
+  float gravity = 0.5;
+  float dampen = 0.5;
+  float size = 1;
+  float heat = 0;
+  int fluid_holes = 20;
+  float fluid_power = 1;
+};
+
 class renderEngine {
  public:
   renderEngine();
   ~renderEngine();
 
   void Initialise(const char* title, int w, int h);
-  void UpdateConfig(float* gravity, float* damp, float* size, float* heat,
-                    int* holeCount, float* holePow);
+  void LinkSettings(FluidEngineSettings* set) { settings = set; };
   void UpdateImage(float* colours);
   void FloodImage(Colour3 col);
   void Update();
@@ -34,6 +42,7 @@ class renderEngine {
   bool ClearSand() { return clearAllSand; };
 
  private:
+  FluidEngineSettings* settings;
   int tick = 0;
   bool isRunning;
   int addSand = 0;

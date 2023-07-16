@@ -38,12 +38,7 @@ class fluidEngine {
   void AddSandAtPos(int x, int y);
   void SandToColour(float colours[]);
   int SandCount() { return sand.size(); }
-  float cfg_gravity = 0.5;
-  float cfg_dampen = 0.5;
-  float cfg_size = 1;
-  float cfg_heat = 0;
-  int cfg_fluid_holes = 20;
-  float cfg_fluid_power = 1;
+  FluidEngineSettings settings;
 
  private:
   std::vector<fluidParticle> sand;

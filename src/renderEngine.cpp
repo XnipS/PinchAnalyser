@@ -40,14 +40,6 @@ ID3D11Texture2D* pTexture = NULL;
 GLuint my_image_texture = 0;
 #endif
 
-// FluidEngine variables
-float* var_gravity;
-float* var_dampen;
-float* var_size;
-float* var_heat;
-int* var_holes;
-float* var_holePower;
-
 // DirectX11 variables
 #if defined(_WIN64)
 // Data
@@ -98,17 +90,6 @@ void renderEngine::UpdateImage(float* colours) {
                colours);
   glBindTexture(GL_TEXTURE_2D, 0);
 #endif
-}
-
-// Transfer variables
-void renderEngine::UpdateConfig(float* gravity, float* damp, float* size,
-                                float* heat, int* holeCount, float* holePow) {
-  var_gravity = gravity;
-  var_dampen = damp;
-  var_size = size;
-  var_heat = heat;
-  var_holes = holeCount;
-  var_holePower = holePow;
 }
 
 // Start engine
@@ -261,12 +242,12 @@ void renderEngine::Update() {
   ImGui::Begin("Toolbox", NULL,
                ImGuiWindowFlags_NoResize | ImGuiWindowFlags_AlwaysAutoResize |
                    ImGuiWindowFlags_NoCollapse);
-  ImGui::SliderFloat("Gravity", var_gravity, 0, 1);
-  ImGui::SliderFloat("Dampen", var_dampen, 0, 1);
-  ImGui::SliderFloat("Size", var_size, 0, 10);
-  ImGui::SliderFloat("Heat", var_heat, 0, 1);
-  ImGui::SliderInt("Fluid Holes", var_holes, 1, 51);
-  ImGui::SliderFloat("Fluid Power", var_holePower, 0, 1);
+  ImGui::SliderFloat("Gravity", &settings->gravity, 0, 1);
+  ImGui::SliderFloat("Dampen", &settings->dampen, 0, 1);
+  ImGui::SliderFloat("Size", &settings->size, 0, 10);
+  ImGui::SliderFloat("Heat", &settings->heat, 0, 1);
+  ImGui::SliderInt("Fluid Holes", &settings->fluid_holes, 1, 51);
+  ImGui::SliderFloat("Fluid Power", &settings->fluid_power, 0, 1);
   ImGui::Text("Total: %i", val_totalSand);
 
   addSand = 0;

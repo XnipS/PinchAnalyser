@@ -21,9 +21,7 @@ int main(int argc, char *args[]) {
   engine->Initialise("Fluidised Bed Engine", 1280, 720);
   fengine->Start(engine);
 
-  engine->UpdateConfig(&fengine->cfg_gravity, &fengine->cfg_dampen,
-                       &fengine->cfg_size, &fengine->cfg_heat,
-                       &fengine->cfg_fluid_holes, &fengine->cfg_fluid_power);
+  engine->LinkSettings(&fengine->settings);
 
   printf("%i", fengine->SandCount());
 

@@ -102,30 +102,30 @@ void fluidEngine::Update() {
 
   for (int i = 0; i < sand.size(); i++) {
     // Sum gravity
-    sand[i].velocity.y += cfg_gravity;
+    sand[i].velocity.y += settings.gravity;
     // Sum heat energy
-    VectorSumScalar(&sand[i].velocity, cfg_heat);
+    VectorSumScalar(&sand[i].velocity, settings.heat);
     // Calculate next position
     Vector2 nextPos = VectorSum(&sand[i].position, &sand[i].velocity);
     Vector2Int round(0, 0);
     VectorRoundToInt(&nextPos, &round);
     // Apply drag
-    if (round.x % (FB_SIZE / cfg_fluid_holes) == 0) {
-      sand[i].velocity.y -= cfg_fluid_power;
+    if (round.x % (FB_SIZE / settings.fluid_holes) == 0) {
+      sand[i].velocity.y -= settings.fluid_power;
     }
     // Keep/collide in/with container
     if (round.x < 0 && sand[i].velocity.x < 0) {
       sand[i].position.x = 0;
-      sand[i].velocity.x = -sand[i].velocity.x * (1.0 - cfg_dampen);
+      sand[i].velocity.x = -sand[i].velocity.x * (1.0 - settings.dampen);
     } else if (round.x > (FB_SIZE - 1) && sand[i].velocity.x > 0) {
       sand[i].position.x = FB_SIZE - 1;
-      sand[i].velocity.x = -sand[i].velocity.x * (1.0 - cfg_dampen);
+      sand[i].velocity.x = -sand[i].velocity.x * (1.0 - settings.dampen);
     } else if (round.y < 0 && sand[i].velocity.y < 0) {
       sand[i].position.y = 0;
-      sand[i].velocity.y = -sand[i].velocity.y * (1.0 - cfg_dampen);
+      sand[i].velocity.y = -sand[i].velocity.y * (1.0 - settings.dampen);
     } else if (round.y > (FB_SIZE - 1) && sand[i].velocity.y > 0) {
       sand[i].position.y = FB_SIZE - 1;
-      sand[i].velocity.y = -sand[i].velocity.y * (1.0 - cfg_dampen);
+      sand[i].velocity.y = -sand[i].velocity.y * (1.0 - settings.dampen);
     } else {
       // Collision check other particles
       for (int j = 0; j < sand.size(); j++) {
@@ -133,10 +133,10 @@ void fluidEngine::Update() {
           double dx = sand[j].position.x - sand[i].position.x;
           double dy = sand[j].position.y - sand[i].position.y;
 
-          if (dx <= cfg_size * 2 && dy <= cfg_size * 2) {
+          if (dx <= settings.size * 2 && dy <= settings.size * 2) {
             double distance = std::sqrt(dx * dx + dy * dy);
 
-            if (distance <= cfg_size) {
+            if (distance <= settings.size) {
               if (distance == 0) {
                 printf("Zero distance\n");
                 continue;
@@ -159,8 +159,8 @@ void fluidEngine::Update() {
                                  (sand[i].mass + sand[j].mass);
 
               // Dampen
-              v1n_after *= (1.0 - cfg_dampen);
-              v2n_after *= (1.0 - cfg_dampen);
+              v1n_after *= (1.0 - settings.dampen);
+              v2n_after *= (1.0 - settings.dampen);
 
               // Calculate the change in normal velocity
               double dv1n = v1n_after - v1n;
@@ -173,7 +173,7 @@ void fluidEngine::Update() {
               sand[j].velocity.y += dv2n * ny;
 
               // Find suitable location
-              while (distance <= cfg_size) {
+              while (distance <= settings.size) {
                 nextPos = VectorSum(&sand[i].position, &sand[i].velocity);
                 sand[i].position = nextPos;
 
@@ -207,7 +207,7 @@ void fluidEngine::SandToColour(float colours[]) {
   for (int x = 0; x < (FB_SIZE); x++) {
     for (int y = 0; y < (FB_SIZE); y++) {
       // Visualise fluid holes
-      if ((x % (FB_SIZE / cfg_fluid_holes) == 0 && y == FB_SIZE - 1)) {
+      if ((x % (FB_SIZE / settings.fluid_holes) == 0 && y == FB_SIZE - 1)) {
         colours[(y * FB_SIZE * 3) + (x * 3)] = blue.r;
         colours[(y * FB_SIZE * 3) + (x * 3) + 1] = blue.b;
         colours[(y * FB_SIZE * 3) + (x * 3) + 2] = blue.g;
