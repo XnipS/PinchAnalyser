@@ -1,6 +1,7 @@
 #include "../include/fluidEngine.h"
 
 #include <cmath>
+#include <cstdio>
 #include <sstream>
 
 #include "../include/core.h"
@@ -39,6 +40,17 @@ static Vector2 VectorSum(Vector2* i, Vector2* j) {
   i->y += j->y;
   return *i;
 }
+// Sum two vectors together
+static void VectorSubtract(Vector2* output, Vector2* i, Vector2* j) {
+  output->x = i->x - j->x;
+  output->y = i->y - j->y;
+}
+// Normalise vector
+static void VectorNormalise(Vector2* output) {
+  static double mag = VectorMagnitude(output);
+  output->x /= mag;
+  output->y /= mag;
+}
 // Sum vector by scalar
 static Vector2 VectorSumScalar(Vector2* i, float j) {
   if (i->x > 0) {
@@ -54,12 +66,13 @@ static Vector2 VectorSumScalar(Vector2* i, float j) {
   }
   return *i;
 }
-
+// Initialise fluid engine
 void fluidEngine::Start(renderEngine* ren) {
   printf("Fluid Engine Initialised\n");
   renderer = ren;
 };
 
+// Fluid engine tick
 void fluidEngine::Update() {
   if (renderer->AddSand() != 0) {
     for (int i = 0; i < renderer->AddSand(); i++) {
@@ -136,7 +149,7 @@ void fluidEngine::Update() {
           if (dx <= settings.size * 2 && dy <= settings.size * 2) {
             double distance = std::sqrt(dx * dx + dy * dy);
 
-            if (distance <= settings.size) {
+            if (distance < settings.size) {
               if (distance == 0) {
                 printf("Zero distance\n");
                 continue;
@@ -173,17 +186,18 @@ void fluidEngine::Update() {
               sand[j].velocity.y += dv2n * ny;
 
               // Find suitable location
-              while (distance <= settings.size) {
-                nextPos = VectorSum(&sand[i].position, &sand[i].velocity);
+              if (distance < settings.size) {
+                // Get dir away from collision
+                VectorSubtract(&nextPos, &sand[j].position, &sand[i].position);
+                // Normalise
+                VectorNormalise(&nextPos);
+                // Multiply by radius + extra
+                VectorSumScalar(&nextPos,
+                                settings.size + FB_MOLECULE_COL_BOUNDARY);
+                // Transform to position
+                nextPos = VectorSum(&sand[i].position, &nextPos);
+                // Movement
                 sand[i].position = nextPos;
-
-                dx = sand[j].position.x - sand[i].position.x;
-                dy = sand[j].position.y - sand[i].position.y;
-                distance = std::sqrt(dx * dx + dy * dy);
-                if (distance == 0) {
-                  printf("Zero distance\n");
-                  break;
-                }
               }
 
             } else {
@@ -197,6 +211,7 @@ void fluidEngine::Update() {
   }
 }
 
+// Encode sand data to colour data
 void fluidEngine::SandToColour(float colours[]) {
   const Colour3 white(1, 1, 1);
   const Colour3 blue(0, 1, 0);

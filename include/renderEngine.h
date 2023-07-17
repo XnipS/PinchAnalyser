@@ -21,6 +21,7 @@ struct FluidEngineSettings {
   float heat = 0;
   int fluid_holes = 20;
   float fluid_power = 1;
+  float bounce_threshold = 0.1;
 };
 
 class renderEngine {
