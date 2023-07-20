@@ -244,7 +244,6 @@ void renderEngine::Update() {
                    ImGuiWindowFlags_NoCollapse);
   ImGui::SliderFloat("Gravity", &settings->gravity, 0, 1);
   ImGui::SliderFloat("Dampen", &settings->dampen, 0, 1);
-  ImGui::SliderFloat("Size", &settings->size, 0, 10);
   ImGui::SliderFloat("Heat", &settings->heat, 0, 1);
   ImGui::SliderInt("Fluid Holes", &settings->fluid_holes, 1, 51);
   ImGui::SliderFloat("Fluid Power", &settings->fluid_power, 0, 1);

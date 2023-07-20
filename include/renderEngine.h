@@ -17,7 +17,6 @@ struct Colour3 {
 struct FluidEngineSettings {
   float gravity = 0.5;
   float dampen = 0.5;
-  float size = 1;
   float heat = 0;
   int fluid_holes = 20;
   float fluid_power = 1;

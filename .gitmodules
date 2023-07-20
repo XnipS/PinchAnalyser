@@ -2,3 +2,6 @@
 	path = depend/imgui
 	url = https://github.com/ocornut/imgui.git
 	branch = docking
+[submodule "depend/VectorMath"]
+	path = depend/VectorMath
+	url = git@github.com:XnipS/VectorMath.git

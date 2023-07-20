@@ -8,6 +8,8 @@ file(GLOB_RECURSE SOURCE_FILES src/*.cpp)
 file(GLOB_RECURSE HEADER_FILES include/*.h)
 # Get imgui path
 set(IMGUI_PATH depend/imgui)
+# Get vectorMath path
+set(VM_PATH depend/VectorMath/include)
 # Get SDL2 from package manager
 find_package(SDL2 REQUIRED)
 # Glob imgui
@@ -31,8 +33,8 @@ add_library(FluidisedBed SHARED
 ${SOURCE_FILES}
 ${HEADER_FILES}
 )
-target_include_directories(FluidisedBed PRIVATE imgui ${SDL2_INCLUDE_DIRS})
+target_include_directories(FluidisedBed PRIVATE imgui ${SDL2_INCLUDE_DIRS} ${VM_PATH})
 # BUILD Main Simulator Executable
 add_executable(Simulator src/main.cpp)
-target_include_directories(Simulator PRIVATE ${SDL2_INCLUDE_DIRS} )
+target_include_directories(Simulator PRIVATE ${SDL2_INCLUDE_DIRS} ${VM_PATH})
 target_link_libraries(Simulator PUBLIC SDL2 FluidisedBed imgui OpenGL)

@@ -11,7 +11,7 @@ fluidEngine::fluidEngine(){};
 fluidEngine::~fluidEngine(){};
 
 renderEngine* renderer;
-Vector2 startingVelocity(0.1, 0.1);
+VM::Vector2 startingVelocity(0.1, 0.1);
 
 // Spawn new particle
 void fluidEngine::AddSandAtPos(int x, int y) {
@@ -19,53 +19,7 @@ void fluidEngine::AddSandAtPos(int x, int y) {
   particle.velocity = startingVelocity;
   sand.push_back(particle);
 };
-// Snap vector to grid
-static void VectorRoundToInt(Vector2* input, Vector2Int* output) {
-  output->x = std::floor(input->x);
-  output->y = std::floor(input->y);
-}
-// Get magnitude of vector
-static double VectorMagnitude(Vector2* input) {
-  double magnitude = std::sqrt(input->x * input->x + input->y * input->y);
-  return magnitude;
-}
-// Get distance between two vectors
-static float VectorDistance(Vector2* u, Vector2* v) {
-  float output = std::sqrt(pow((u->x - v->x), 2) + pow((u->y - v->y), 2));
-  return output;
-}
-// Sum two vectors together
-static Vector2 VectorSum(Vector2* i, Vector2* j) {
-  i->x += j->x;
-  i->y += j->y;
-  return *i;
-}
-// Sum two vectors together
-static void VectorSubtract(Vector2* output, Vector2* i, Vector2* j) {
-  output->x = i->x - j->x;
-  output->y = i->y - j->y;
-}
-// Normalise vector
-static void VectorNormalise(Vector2* output) {
-  static double mag = VectorMagnitude(output);
-  output->x /= mag;
-  output->y /= mag;
-}
-// Sum vector by scalar
-static Vector2 VectorSumScalar(Vector2* i, float j) {
-  if (i->x > 0) {
-    i->x += j;
-  } else {
-    i->x -= j;
-  }
 
-  if (i->y > 0) {
-    i->y += j;
-  } else {
-    i->y -= j;
-  }
-  return *i;
-}
 // Initialise fluid engine
 void fluidEngine::Start(renderEngine* ren) {
   printf("Fluid Engine Initialised\n");
@@ -88,7 +42,8 @@ void fluidEngine::Update() {
   // TOTAL KINETIC ENERGY
   float energy = 0;
   for (int t = 0; t < sand.size(); t++) {
-    float magnitude = VectorMagnitude(&sand[t].velocity);
+    double magnitude;
+    VectorMagnitude(&sand[t].velocity, &magnitude);
     energy += 0.5 * magnitude * magnitude;
   }
   if (renderer->currentDebugInfo.size() >= 2) {
@@ -98,7 +53,8 @@ void fluidEngine::Update() {
     ss << " J";
     renderer->currentDebugInfo[1] = ss.str();
 
-    float starting = VectorMagnitude(&startingVelocity);
+    double starting;
+    VectorMagnitude(&startingVelocity, &starting);
 
     starting = (0.5 * starting * starting) * SandCount();
 
@@ -119,8 +75,9 @@ void fluidEngine::Update() {
     // Sum heat energy
     VectorSumScalar(&sand[i].velocity, settings.heat);
     // Calculate next position
-    Vector2 nextPos = VectorSum(&sand[i].position, &sand[i].velocity);
-    Vector2Int round(0, 0);
+    VM::Vector2 nextPos(0, 0);
+    VectorSum(&nextPos, &sand[i].position, &sand[i].velocity);
+    VM::Vector2Int round(0, 0);
     VectorRoundToInt(&nextPos, &round);
     // Apply drag
     if (round.x % (FB_SIZE / settings.fluid_holes) == 0) {
@@ -143,67 +100,66 @@ void fluidEngine::Update() {
       // Collision check other particles
       for (int j = 0; j < sand.size(); j++) {
         if (i != j) {
-          double dx = sand[j].position.x - sand[i].position.x;
-          double dy = sand[j].position.y - sand[i].position.y;
+          double distance;
+          VectorDistance(&sand[i].position, &sand[j].position, &distance);
 
-          if (dx <= settings.size * 2 && dy <= settings.size * 2) {
-            double distance = std::sqrt(dx * dx + dy * dy);
+          if (distance < sand[i].radius + sand[j].radius) {
+            if (distance == 0) {
+              printf("Zero distance\n");
+              continue;
+            }
+            double dx = sand[j].position.x - sand[i].position.x;
+            double dy = sand[j].position.y - sand[i].position.y;
 
-            if (distance < settings.size) {
-              if (distance == 0) {
-                printf("Zero distance\n");
-                continue;
-              }
-              double nx = dx / distance;
-              double ny = dy / distance;
+            double nx = dx / distance;
+            double ny = dy / distance;
 
-              // Calculate the relative velocity components along the collision
-              // vector
-              double v1n = sand[i].velocity.x * nx + sand[i].velocity.y * ny;
-              double v2n = sand[j].velocity.x * nx + sand[j].velocity.y * ny;
+            // Calculate the relative velocity components along the collision
+            // vector
+            double v1n = sand[i].velocity.x * nx + sand[i].velocity.y * ny;
+            double v2n = sand[j].velocity.x * nx + sand[j].velocity.y * ny;
 
-              // Calculate the new normal velocity components after the
-              // collision
-              double v1n_after = (v1n * (sand[i].mass - sand[j].mass) +
-                                  2 * sand[j].mass * v2n) /
-                                 (sand[i].mass + sand[j].mass);
-              double v2n_after = (v2n * (sand[j].mass - sand[i].mass) +
-                                  2 * sand[i].mass * v1n) /
-                                 (sand[i].mass + sand[j].mass);
+            // Calculate the new normal velocity components after the
+            // collision
+            double v1n_after =
+                (v1n * (sand[i].mass - sand[j].mass) + 2 * sand[j].mass * v2n) /
+                (sand[i].mass + sand[j].mass);
+            double v2n_after =
+                (v2n * (sand[j].mass - sand[i].mass) + 2 * sand[i].mass * v1n) /
+                (sand[i].mass + sand[j].mass);
 
-              // Dampen
-              v1n_after *= (1.0 - settings.dampen);
-              v2n_after *= (1.0 - settings.dampen);
+            // Dampen
+            v1n_after *= (1.0 - settings.dampen);
+            v2n_after *= (1.0 - settings.dampen);
 
-              // Calculate the change in normal velocity
-              double dv1n = v1n_after - v1n;
-              double dv2n = v2n_after - v2n;
+            // Calculate the change in normal velocity
+            double dv1n = v1n_after - v1n;
+            double dv2n = v2n_after - v2n;
 
-              // Update the velocities of the circles after the collision
-              sand[i].velocity.x += dv1n * nx;
-              sand[i].velocity.y += dv1n * ny;
-              sand[j].velocity.x += dv2n * nx;
-              sand[j].velocity.y += dv2n * ny;
+            // Update the velocities of the circles after the collision
+            sand[i].velocity.x += dv1n * nx;
+            sand[i].velocity.y += dv1n * ny;
+            sand[j].velocity.x += dv2n * nx;
+            sand[j].velocity.y += dv2n * ny;
 
-              // Find suitable location
-              if (distance < settings.size) {
-                // Get dir away from collision
-                VectorSubtract(&nextPos, &sand[j].position, &sand[i].position);
-                // Normalise
-                VectorNormalise(&nextPos);
-                // Multiply by radius + extra
-                VectorSumScalar(&nextPos,
-                                settings.size + FB_MOLECULE_COL_BOUNDARY);
-                // Transform to position
-                nextPos = VectorSum(&sand[i].position, &nextPos);
-                // Movement
-                sand[i].position = nextPos;
-              }
-
-            } else {
+            // Find suitable location
+            if (distance < sand[i].radius + sand[j].radius) {
+              // Get dir away from collision
+              VectorSubtract(&nextPos, &sand[j].position, &sand[i].position);
+              // Normalise
+              VectorNormalise(&nextPos);
+              // Multiply by radius + extra
+              VectorSumScalar(&nextPos, sand[i].radius + sand[j].radius +
+                                            FB_MOLECULE_COL_BOUNDARY);
+              // Transform to position
+              VectorSum(&nextPos, &sand[i].position, &nextPos);
               // Movement
               sand[i].position = nextPos;
             }
+
+          } else {
+            // Movement
+            sand[i].position = nextPos;
           }
         }
       }
@@ -236,7 +192,7 @@ void fluidEngine::SandToColour(float colours[]) {
 
   // Render sand
   for (int i = 0; i < sand.size(); i++) {
-    Vector2Int rounded(0, 0);
+    VM::Vector2Int rounded(0, 0);
     VectorRoundToInt(&sand[i].position, &rounded);
 
     if (rounded.x < 0 || rounded.x > (FB_SIZE - 1) || rounded.y < 0 ||
