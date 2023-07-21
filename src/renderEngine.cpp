@@ -1,18 +1,19 @@
 #include "../include/renderEngine.h"
 
+#if defined(_WIN64)
 #include <Windows.h>
+#endif
 #include <GL/gl.h>
-#include "../depend/imgui/backends/imgui_impl_opengl3.h"
-
 #include <SDL.h>
-#include <SDL_opengl.h>
 #include <SDL_events.h>
+#include <SDL_opengl.h>
 #include <SDL_video.h>
 
 #include <cstddef>
 #include <cstdio>
 #include <iostream>
 
+#include "../depend/imgui/backends/imgui_impl_opengl3.h"
 #include "../depend/imgui/backends/imgui_impl_sdl2.h"
 #include "../depend/imgui/imgui.h"
 #include "../include/core.h"
@@ -29,7 +30,6 @@ GLuint my_image_texture = 0;
 
 // Flood image with single colour
 void renderEngine::FloodImage(Colour3 col) {
-
   float pixels[FB_SIZE * FB_SIZE * 3];
   for (int x = 0; x < (FB_SIZE); x++) {
     for (int y = 0; y < (FB_SIZE); y++) {
@@ -43,12 +43,11 @@ void renderEngine::FloodImage(Colour3 col) {
 
 // Set image pixels
 void renderEngine::UpdateImage(float* colours) {
-
   glGenTextures(1, &my_image_texture);
   glBindTexture(GL_TEXTURE_2D, my_image_texture);
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-  //glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+  // glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
   glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, FB_SIZE, FB_SIZE, 0, GL_RGB, GL_FLOAT,
                colours);
   glBindTexture(GL_TEXTURE_2D, 0);
@@ -56,7 +55,6 @@ void renderEngine::UpdateImage(float* colours) {
 
 // Start engine
 void renderEngine::Initialise(const char* title, int w, int h) {
-
   // SDL Attributes
   SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
   SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 24);
@@ -96,7 +94,6 @@ void renderEngine::Initialise(const char* title, int w, int h) {
 
 // Tick renderengine
 void renderEngine::Update() {
-
   // Tick
   tick++;
 
@@ -194,7 +191,6 @@ void renderEngine::Update() {
 
 // Render
 void renderEngine::Render() {
-
   // Imgui Render
   ImGui::Render();
 
@@ -209,7 +205,6 @@ void renderEngine::Render() {
 
 // Clean
 void renderEngine::Clean() {
-
   // Shutdown imgui graphic implementation
   ImGui_ImplOpenGL3_Shutdown();
   // Clean Imgui
