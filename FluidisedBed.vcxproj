@@ -45,6 +45,10 @@
     <ClInclude Include="include\core.h" />
     <ClInclude Include="include\fluidEngine.h" />
     <ClInclude Include="include\renderEngine.h" />
+    <ClInclude Include="vclib\GLEW\include\GL\eglew.h" />
+    <ClInclude Include="vclib\GLEW\include\GL\glew.h" />
+    <ClInclude Include="vclib\GLEW\include\GL\glxew.h" />
+    <ClInclude Include="vclib\GLEW\include\GL\wglew.h" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>16.0</VCProjectVersion>
@@ -99,19 +103,19 @@
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
-    <IncludePath>$(ProjectDir)\vclib\SDL2\include;$(ProjectDir)\include;$(ProjectDir)\depend\VectorMath\include;$(ProjectDir)\depend\imgui;$(IncludePath)</IncludePath>
+    <IncludePath>$(ProjectDir)\vclib\GLEW\include;$(ProjectDir)\vclib\SDL2\include;$(ProjectDir)\include;$(ProjectDir)\depend\VectorMath\include;$(ProjectDir)\depend\imgui;$(IncludePath)</IncludePath>
     <SourcePath>$(ProjectDir)\depend\imgui;$(ProjectDir)\src;$(SourcePath)</SourcePath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
-    <IncludePath>$(ProjectDir)\vclib\SDL2\include;$(ProjectDir)\include;$(ProjectDir)\depend\VectorMath\include;$(ProjectDir)\depend\imgui;$(IncludePath)</IncludePath>
+    <IncludePath>$(ProjectDir)\vclib\GLEW\include;$(ProjectDir)\vclib\SDL2\include;$(ProjectDir)\include;$(ProjectDir)\depend\VectorMath\include;$(ProjectDir)\depend\imgui;$(IncludePath)</IncludePath>
     <SourcePath>$(ProjectDir)\depend\imgui;$(ProjectDir)\src;$(SourcePath)</SourcePath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
-    <IncludePath>$(ProjectDir)\vclib\SDL2\include;$(ProjectDir)\include;$(ProjectDir)\depend\VectorMath\include;$(ProjectDir)\depend\imgui;$(IncludePath)</IncludePath>
+    <IncludePath>$(ProjectDir)\vclib\GLEW\include;$(ProjectDir)\vclib\SDL2\include;$(ProjectDir)\include;$(ProjectDir)\depend\VectorMath\include;$(ProjectDir)\depend\imgui;$(IncludePath)</IncludePath>
     <SourcePath>$(ProjectDir)\depend\imgui;$(ProjectDir)\src;$(SourcePath)</SourcePath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
-    <IncludePath>$(ProjectDir)\vclib\SDL2\include;$(ProjectDir)\include;$(ProjectDir)\depend\VectorMath\include;$(ProjectDir)\depend\imgui;$(IncludePath)</IncludePath>
+    <IncludePath>$(ProjectDir)\vclib\GLEW\include;$(ProjectDir)\vclib\SDL2\include;$(ProjectDir)\include;$(ProjectDir)\depend\VectorMath\include;$(ProjectDir)\depend\imgui;$(IncludePath)</IncludePath>
     <SourcePath>$(ProjectDir)\depend\imgui;$(ProjectDir)\src;$(SourcePath)</SourcePath>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
@@ -120,12 +124,14 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>WIN32;_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
+      <SuppressStartupBanner>true</SuppressStartupBanner>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalLibraryDirectories>$(ProjectDir)\vclib\SDL2\lib\x86;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
-      <AdditionalDependencies>SDL2.lib;d3d11.lib;SDL2main.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>$(ProjectDir)\vclib\SDL2\lib\x86;$(ProjectDir)\vclib\GLEW\lib\Release\Win32;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>SDL2.lib;SDL2main.lib;opengl32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <ShowProgress>NotSet</ShowProgress>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
@@ -136,14 +142,16 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>WIN32;NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
+      <SuppressStartupBanner>true</SuppressStartupBanner>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalLibraryDirectories>$(ProjectDir)\vclib\SDL2\lib\x86;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
-      <AdditionalDependencies>SDL2.lib;d3d11.lib;SDL2main.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>$(ProjectDir)\vclib\SDL2\lib\x86;$(ProjectDir)\vclib\GLEW\lib\Release\Win32;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>SDL2.lib;SDL2main.lib;opengl32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <ShowProgress>NotSet</ShowProgress>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
@@ -152,12 +160,14 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
+      <SuppressStartupBanner>true</SuppressStartupBanner>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalLibraryDirectories>$(ProjectDir)\vclib\SDL2\lib\x64;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
-      <AdditionalDependencies>SDL2.lib;d3d11.lib;SDL2main.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>$(ProjectDir)\vclib\SDL2\lib\x64;$(ProjectDir)\vclib\GLEW\lib\Release\x64;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>SDL2.lib;SDL2main.lib;opengl32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <ShowProgress>NotSet</ShowProgress>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -168,14 +178,16 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
+      <SuppressStartupBanner>true</SuppressStartupBanner>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalLibraryDirectories>$(ProjectDir)\vclib\SDL2\lib\x64;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
-      <AdditionalDependencies>SDL2.lib;d3d11.lib;SDL2main.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>$(ProjectDir)\vclib\SDL2\lib\x64;$(ProjectDir)\vclib\GLEW\lib\Release\x64;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>SDL2.lib;SDL2main.lib;opengl32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <ShowProgress>NotSet</ShowProgress>
     </Link>
   </ItemDefinitionGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

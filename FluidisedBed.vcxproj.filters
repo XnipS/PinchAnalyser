@@ -16,6 +16,9 @@
     <Filter Include="imgui">
       <UniqueIdentifier>{c574caa4-327e-4abc-9cf2-90d62d2cfa25}</UniqueIdentifier>
     </Filter>
+    <Filter Include="glew">
+      <UniqueIdentifier>{6ff541fe-bdfb-4325-8e12-faae63dad40d}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\fluidEngine.cpp">
@@ -91,6 +94,18 @@
     </ClInclude>
     <ClInclude Include="depend\imgui\backends\imgui_impl_sdl2.h">
       <Filter>imgui</Filter>
+    </ClInclude>
+    <ClInclude Include="vclib\GLEW\include\GL\eglew.h">
+      <Filter>glew</Filter>
+    </ClInclude>
+    <ClInclude Include="vclib\GLEW\include\GL\glew.h">
+      <Filter>glew</Filter>
+    </ClInclude>
+    <ClInclude Include="vclib\GLEW\include\GL\glxew.h">
+      <Filter>glew</Filter>
+    </ClInclude>
+    <ClInclude Include="vclib\GLEW\include\GL\wglew.h">
+      <Filter>glew</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>
