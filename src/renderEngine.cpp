@@ -43,11 +43,9 @@ void renderEngine::FloodImage(Colour3 col) {
 
 // Set image pixels
 void renderEngine::UpdateImage(float* colours) {
-  glGenTextures(1, &my_image_texture);
   glBindTexture(GL_TEXTURE_2D, my_image_texture);
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-  // glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
   glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, FB_SIZE, FB_SIZE, 0, GL_RGB, GL_FLOAT,
                colours);
   glBindTexture(GL_TEXTURE_2D, 0);
