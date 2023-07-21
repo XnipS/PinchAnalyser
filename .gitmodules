@@ -4,4 +4,4 @@
 	branch = docking
 [submodule "depend/VectorMath"]
 	path = depend/VectorMath
-	url = git@github.com:XnipS/VectorMath.git
+	url = https://github.com/XnipS/VectorMath.git

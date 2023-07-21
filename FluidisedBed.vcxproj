@@ -71,7 +71,7 @@
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
-    <IncludePath>$(ProjectDir)vclib\SDL2-2.28.1\include;$(ProjectDir)depend\imgui\;$(ProjectDir)vclib\glew\include\GL;$(IncludePath)</IncludePath>
+    <IncludePath>$(ProjectDir)vclib\SDL2-2.28.1\include;$(ProjectDir)depend\VectorMath\include\;$(ProjectDir)depend\imgui\;$(ProjectDir)vclib\glew\include\GL;$(IncludePath)</IncludePath>
     <SourcePath>$(ProjectDir)depend\imgui\;$(SourcePath)</SourcePath>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
