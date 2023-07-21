@@ -13,40 +13,43 @@
       <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
       <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
     </Filter>
+    <Filter Include="imgui">
+      <UniqueIdentifier>{c574caa4-327e-4abc-9cf2-90d62d2cfa25}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="src\main.cpp">
+    <ClCompile Include="src\fluidEngine.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="src\fluidEngine.cpp">
+    <ClCompile Include="src\main.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="src\renderEngine.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="depend\imgui\imgui.cpp">
-      <Filter>Source Files</Filter>
+      <Filter>imgui</Filter>
     </ClCompile>
     <ClCompile Include="depend\imgui\imgui_demo.cpp">
-      <Filter>Source Files</Filter>
+      <Filter>imgui</Filter>
     </ClCompile>
     <ClCompile Include="depend\imgui\imgui_draw.cpp">
-      <Filter>Source Files</Filter>
+      <Filter>imgui</Filter>
     </ClCompile>
     <ClCompile Include="depend\imgui\imgui_tables.cpp">
-      <Filter>Source Files</Filter>
+      <Filter>imgui</Filter>
     </ClCompile>
     <ClCompile Include="depend\imgui\imgui_widgets.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="depend\imgui\backends\imgui_impl_opengl3.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="depend\imgui\backends\imgui_impl_sdl2.cpp">
-      <Filter>Source Files</Filter>
+      <Filter>imgui</Filter>
     </ClCompile>
     <ClCompile Include="depend\imgui\backends\imgui_impl_dx11.cpp">
-      <Filter>Source Files</Filter>
+      <Filter>imgui</Filter>
+    </ClCompile>
+    <ClCompile Include="depend\imgui\backends\imgui_impl_opengl3.cpp">
+      <Filter>imgui</Filter>
+    </ClCompile>
+    <ClCompile Include="depend\imgui\backends\imgui_impl_sdl2.cpp">
+      <Filter>imgui</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -60,40 +63,34 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="depend\imgui\imconfig.h">
-      <Filter>Header Files</Filter>
+      <Filter>imgui</Filter>
     </ClInclude>
     <ClInclude Include="depend\imgui\imgui.h">
-      <Filter>Header Files</Filter>
+      <Filter>imgui</Filter>
     </ClInclude>
     <ClInclude Include="depend\imgui\imgui_internal.h">
-      <Filter>Header Files</Filter>
+      <Filter>imgui</Filter>
     </ClInclude>
     <ClInclude Include="depend\imgui\imstb_rectpack.h">
-      <Filter>Header Files</Filter>
+      <Filter>imgui</Filter>
     </ClInclude>
     <ClInclude Include="depend\imgui\imstb_textedit.h">
-      <Filter>Header Files</Filter>
+      <Filter>imgui</Filter>
     </ClInclude>
     <ClInclude Include="depend\imgui\imstb_truetype.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="depend\imgui\backends\imgui_impl_opengl3.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="depend\imgui\backends\imgui_impl_opengl3_loader.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="depend\imgui\backends\imgui_impl_sdl2.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="vclib\glext.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="vclib\khrplatform.h">
-      <Filter>Header Files</Filter>
+      <Filter>imgui</Filter>
     </ClInclude>
     <ClInclude Include="depend\imgui\backends\imgui_impl_dx11.h">
-      <Filter>Header Files</Filter>
+      <Filter>imgui</Filter>
+    </ClInclude>
+    <ClInclude Include="depend\imgui\backends\imgui_impl_opengl3.h">
+      <Filter>imgui</Filter>
+    </ClInclude>
+    <ClInclude Include="depend\imgui\backends\imgui_impl_opengl3_loader.h">
+      <Filter>imgui</Filter>
+    </ClInclude>
+    <ClInclude Include="depend\imgui\backends\imgui_impl_sdl2.h">
+      <Filter>imgui</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>
