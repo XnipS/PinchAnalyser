@@ -30,12 +30,12 @@ GLuint my_image_texture = 0;
 
 // Flood image with single colour
 void renderEngine::FloodImage(Colour3 col) {
-  float pixels[FB_SIZE * FB_SIZE * 3];
-  for (int x = 0; x < (FB_SIZE); x++) {
-    for (int y = 0; y < (FB_SIZE); y++) {
-      pixels[(y * FB_SIZE * 3) + (x * 3)] = col.r;
-      pixels[(y * FB_SIZE * 3) + (x * 3) + 1] = col.b;
-      pixels[(y * FB_SIZE * 3) + (x * 3) + 2] = col.g;
+  float pixels[FB_CONTAINER_OUTPUT * FB_CONTAINER_OUTPUT * 3];
+  for (int x = 0; x < (FB_CONTAINER_OUTPUT); x++) {
+    for (int y = 0; y < (FB_CONTAINER_OUTPUT); y++) {
+      pixels[(y * FB_CONTAINER_OUTPUT * 3) + (x * 3)] = col.r;
+      pixels[(y * FB_CONTAINER_OUTPUT * 3) + (x * 3) + 1] = col.b;
+      pixels[(y * FB_CONTAINER_OUTPUT * 3) + (x * 3) + 2] = col.g;
     }
   }
   UpdateImage(&pixels[0]);
@@ -46,8 +46,8 @@ void renderEngine::UpdateImage(float* colours) {
   glBindTexture(GL_TEXTURE_2D, my_image_texture);
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-  glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, FB_SIZE, FB_SIZE, 0, GL_RGB, GL_FLOAT,
-               colours);
+  glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, FB_CONTAINER_OUTPUT,
+               FB_CONTAINER_OUTPUT, 0, GL_RGB, GL_FLOAT, colours);
   glBindTexture(GL_TEXTURE_2D, 0);
 }
 
@@ -72,7 +72,8 @@ void renderEngine::Initialise(const char* title, int w, int h) {
   ImGui::CreateContext();
   io = ImGui::GetIO();
   (void)io;
-  io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;
+  // ImGui::GetIO().IniFilename = NULL;
+  ImGui::GetIO().ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;
   ImGui::GetIO().ConfigFlags |= ImGuiConfigFlags_DockingEnable;
 
   // Setup Platform/Renderer backends
@@ -111,9 +112,6 @@ void renderEngine::Update() {
   ImGui_ImplSDL2_NewFrame();
   ImGui::NewFrame();
 
-  // Imgui goes here
-  // ImGui::ShowDemoWindow();
-
   // Menu Bar
   ImGui::BeginMainMenuBar();
   ImGui::Text("NIP-Engine");
@@ -125,23 +123,36 @@ void renderEngine::Update() {
   ImGui::Begin("Fluidised Bed Simulator", NULL,
                ImGuiWindowFlags_NoResize | ImGuiWindowFlags_AlwaysAutoResize |
                    ImGuiWindowFlags_NoCollapse);
-  ImGui::Text("Size = %d x %d. Tickrate = %d. Tick = %d.", FB_SIZE, FB_SIZE,
-              FB_TARGET_TICKRATE, tick);
+  ImGui::Text("Size: %d x %d. Scale: 1 pixel = %f m. Tickrate: %d. Tick: %d.",
+              FB_CONTAINER_OUTPUT, FB_CONTAINER_OUTPUT,
+              (FB_CONTAINER_SIZE / FB_CONTAINER_OUTPUT), FB_TARGET_TICKRATE,
+              tick);
   ImGui::Image((void*)(intptr_t)my_image_texture,
-               ImVec2(FB_SIZE * FB_IMAGE_SCALE, FB_SIZE * FB_IMAGE_SCALE));
+               ImVec2(FB_CONTAINER_OUTPUT * FB_IMAGE_SCALE,
+                      FB_CONTAINER_OUTPUT * FB_IMAGE_SCALE));
   ImGui::End();
 
   // Toolbox
   ImGui::Begin("Toolbox", NULL,
                ImGuiWindowFlags_NoResize | ImGuiWindowFlags_AlwaysAutoResize |
                    ImGuiWindowFlags_NoCollapse);
-  ImGui::SliderFloat("Gravity", &settings->gravity, 0, 1);
-  ImGui::SliderFloat("Dampen", &settings->dampen, 0, 1);
+  ImGui::SliderFloat("Gravity (m/s/s)", &settings->gravity, 0, 0.5);
+  ImGui::SliderFloat("Dampen (%)", &settings->dampen, 0, 1);
+  ImGui::BeginDisabled(true);
   ImGui::SliderFloat("Heat", &settings->heat, 0, 1);
   ImGui::SliderInt("Fluid Holes", &settings->fluid_holes, 1, 51);
-  ImGui::SliderFloat("Fluid Power", &settings->fluid_power, 0, 1);
-  ImGui::Text("Total: %i", val_totalSand);
+  ImGui::SliderFloat("Fluid Power", &settings->fluid_power, 0, 200);
+  ImGui::EndDisabled();
+  ImGui::End();
 
+  // Sand Summoner
+  ImGui::Begin("Sand Summoner", NULL,
+               ImGuiWindowFlags_NoResize | ImGuiWindowFlags_AlwaysAutoResize |
+                   ImGuiWindowFlags_NoCollapse);
+  ImGui::InputDouble("Drag Coeff. (-)", &settings->dragCoefficient);
+  ImGui::InputDouble("Mass (kg)", &settings->mass);
+  ImGui::InputDouble("Radius (m)", &settings->radius);
+  ImGui::Text("Total: %i", val_totalSand);
   addSand = 0;
   ImGui::SameLine();
   if (ImGui::Button("Add 1x")) {
@@ -157,7 +168,6 @@ void renderEngine::Update() {
   }
   ImGui::SameLine();
   clearAllSand = ImGui::Button("Clear");
-
   ImGui::End();
 
   // Top left Overlay

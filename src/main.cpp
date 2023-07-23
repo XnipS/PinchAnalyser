@@ -12,7 +12,7 @@ fluidEngine *fengine = nullptr;
 
 Uint32 frameStart;
 int currentTickTime;
-float pixels[FB_SIZE * FB_SIZE * 3];
+float pixels[FB_CONTAINER_OUTPUT * FB_CONTAINER_OUTPUT * 3];
 
 // Entrypoint
 int main(int argc, char *args[]) {
@@ -28,10 +28,7 @@ int main(int argc, char *args[]) {
   // Spawn initial random sand
   if (FB_MOLECULE_SPAWNRANDOM) {
     for (int i = 0; i < FB_MOLECULE_COUNT; i++) {
-      int x, y;
-      x = (rand() % FB_SIZE);
-      y = (rand() % FB_SIZE);
-      fengine->AddSandAtPos(x, y);
+      fengine->AddSandAtRnd();
     }
   } else {
     for (int x = 0; x < FB_MOLECULE_COUNT; x++) {

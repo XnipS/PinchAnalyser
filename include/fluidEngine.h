@@ -1,6 +1,7 @@
 #pragma once
 #include <VectorMath.h>
 
+#include <cmath>
 #include <vector>
 
 #include "renderEngine.h"
@@ -9,9 +10,17 @@ class fluidParticle {
  public:
   VM::Vector2 position = *new VM::Vector2(0, 0);
   VM::Vector2 velocity = *new VM::Vector2(0, 0);
-  float mass = 1.0;
-  float radius = 0.5;
-  fluidParticle(int x, int y) { position = *new VM::Vector2(x, y); }
+  float mass = 0.02;      // kg
+  float radius = 0.0003;  // m
+  fluidParticle(double x, double y, double m, double r) {
+    position = *new VM::Vector2(x, y);
+    mass = m;
+    radius = r;
+  }
+  double crossSectionalArea() { return M_PI * radius * radius; }  // m**2
+  double density() {
+    return mass / ((4.0 / 3.0) * M_PI * radius * radius * radius);  // kg/m**3
+  }
 };
 
 class fluidEngine {
@@ -20,11 +29,13 @@ class fluidEngine {
   ~fluidEngine();
   void Start(renderEngine* ren);
   void Update();
-  void AddSandAtPos(int x, int y);
+  void AddSandAtRnd();
+  void AddSandAtPos(double x, double y);
   void SandToColour(float colours[]);
   int SandCount() { return sand.size(); }
   FluidEngineSettings settings;
 
  private:
+  void Reflect(double* input);
   std::vector<fluidParticle> sand;
 };
