@@ -2,13 +2,14 @@
 
 #include <cstdio>
 #include <iostream>
+#include <thread>
 
 #include "../include/core.h"
 #include "../include/fluidEngine.h"
 #include "../include/renderEngine.h"
 
-renderEngine *engine = nullptr;
-fluidEngine *fengine = nullptr;
+renderEngine *render = nullptr;
+fluidEngine *fluid = nullptr;
 
 Uint32 frameStart;
 int currentTickTime;
@@ -17,39 +18,41 @@ float pixels[FB_CONTAINER_OUTPUT * FB_CONTAINER_OUTPUT * 3];
 // Entrypoint
 int main(int argc, char *args[]) {
   // Engines
-  engine = new renderEngine();
-  fengine = new fluidEngine();
+  render = new renderEngine();
+  fluid = new fluidEngine();
 
   // Start
-  engine->Initialise("Fluidised Bed Engine", 1280, 720);
-  fengine->Start(engine);
-  engine->LinkSettings(&fengine->settings);
+  render->Initialise("Fluidised Bed Engine", 1280, 720);
+  fluid->Start(render);
+  render->LinkSettings(&fluid->settings);
 
   // Spawn initial random sand
   if (FB_MOLECULE_SPAWNRANDOM) {
     for (int i = 0; i < FB_MOLECULE_COUNT; i++) {
-      fengine->AddSandAtRnd();
+      fluid->AddSandAtRnd();
     }
   } else {
     for (int x = 0; x < FB_MOLECULE_COUNT; x++) {
       for (int y = 0; y < FB_MOLECULE_COUNT; y++) {
-        fengine->AddSandAtPos(x, y);
+        fluid->AddSandAtPos(x, y);
       }
     }
   }
 
   // Tick loop
-  while (engine->Running()) {
+  while (render->Running()) {
     // Start tick time
     frameStart = SDL_GetTicks();
 
     // Update & render
-    fengine->Update();
-    fengine->SandToColour(&pixels[0]);
-    engine->UpdateImage(&pixels[0]);  // HERE
-    engine->val_totalSand = fengine->SandCount();
-    engine->Update();
-    engine->Render();
+    std::thread fluidThread(&fluidEngine::Update, fluid);
+    fluid->SandToColour(&pixels[0]);
+    render->UpdateImage(&pixels[0]);  // HERE
+    render->val_totalSand = fluid->SandCount();
+    render->Update();
+    render->Render();
+
+    fluidThread.join();
 
     // Check for delays
     currentTickTime = SDL_GetTicks() - frameStart;
@@ -62,6 +65,6 @@ int main(int argc, char *args[]) {
     }
   }
   // Clean
-  engine->Clean();
+  render->Clean();
   return 0;
 }
