@@ -14,6 +14,7 @@ fluidEngine *fluid = nullptr;
 Uint32 frameStart;
 int currentTickTime;
 float pixels[FB_CONTAINER_OUTPUT * FB_CONTAINER_OUTPUT * 3];
+std::vector<CircleSettings> particles;
 
 // Entrypoint
 int main(int argc, char *args[]) {
@@ -38,6 +39,7 @@ int main(int argc, char *args[]) {
       }
     }
   }
+  render->LinkParticles(&particles);
 
   // Tick loop
   while (render->Running()) {
@@ -48,6 +50,7 @@ int main(int argc, char *args[]) {
     std::thread fluidThread(&fluidEngine::Update, fluid);
     fluid->SandToColour(&pixels[0]);
     render->UpdateImage(&pixels[0]);  // HERE
+    fluid->LinkSandToMain(&particles);
     render->val_totalSand = fluid->SandCount();
     render->Update();
     render->Render();

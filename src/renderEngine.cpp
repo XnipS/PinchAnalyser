@@ -1,5 +1,7 @@
 #include "../include/renderEngine.h"
 
+#include <vector>
+
 #if defined(_WIN64)
 #include <Windows.h>
 #endif
@@ -24,6 +26,7 @@ SDL_Window* window;
 SDL_GLContext gl_context;
 ImGuiIO io;
 ImVec4 clear_color = ImVec4(0.45f, 0.55f, 0.60f, 1.00f);
+std::vector<CircleSettings>* sandRef;
 
 // Fluid image tank variables
 GLuint my_image_texture = 0;
@@ -49,6 +52,10 @@ void renderEngine::UpdateImage(float* colours) {
   glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, FB_CONTAINER_OUTPUT,
                FB_CONTAINER_OUTPUT, 0, GL_RGB, GL_FLOAT, colours);
   glBindTexture(GL_TEXTURE_2D, 0);
+}
+
+void renderEngine::LinkParticles(std::vector<CircleSettings>* newPos) {
+  sandRef = newPos;
 }
 
 // Start engine
@@ -120,7 +127,7 @@ void renderEngine::Update() {
   ImGui::EndMainMenuBar();
 
   // Main Simulation
-  ImGui::Begin("Fluidised Bed Simulator", NULL,
+  ImGui::Begin("Primary Renderer", NULL,
                ImGuiWindowFlags_NoResize | ImGuiWindowFlags_AlwaysAutoResize |
                    ImGuiWindowFlags_NoCollapse);
   ImGui::Text("Size: %d x %d. Scale: 1 pixel = %f m. Tickrate: %d. Tick: %d.",
@@ -136,7 +143,7 @@ void renderEngine::Update() {
   ImGui::Begin("Toolbox", NULL,
                ImGuiWindowFlags_NoResize | ImGuiWindowFlags_AlwaysAutoResize |
                    ImGuiWindowFlags_NoCollapse);
-  ImGui::SliderFloat("Gravity (m/s/s)", &settings->gravity, 0, 0.5);
+  ImGui::SliderFloat("Gravity (m/s/s)", &settings->gravity, 0, 10);
   ImGui::SliderFloat("Dampen (%)", &settings->dampen, 0, 1);
   ImGui::BeginDisabled(true);
   ImGui::SliderFloat("Heat", &settings->heat, 0, 1);
@@ -195,6 +202,21 @@ void renderEngine::Update() {
     }
     ImGui::End();
   }
+  ImGui::Begin("Secondary Renderer", NULL,
+               ImGuiWindowFlags_NoResize | ImGuiWindowFlags_AlwaysAutoResize |
+                   ImGuiWindowFlags_NoCollapse);
+  ImVec2 p = ImGui::GetCursorScreenPos();
+  static double scale = FB_CONTAINER_OUTPUT * FB_IMAGE_SCALE_V2;
+  ImGui::GetWindowDrawList()->AddRectFilled(ImVec2(p.x, p.y),
+                                            ImVec2(p.x + scale, p.y + scale),
+                                            IM_COL32(50, 50, 50, 255));
+  for (int i = 0; i < sandRef->size(); i++) {
+    ImGui::GetWindowDrawList()->AddCircleFilled(
+        ImVec2(p.x + (*sandRef)[i].position.x, p.y + (*sandRef)[i].position.y),
+        (*sandRef)[i].radius, IM_COL32(255, 255, 255, 255), 0);
+  }
+  ImGui::Dummy(ImVec2(scale, scale));
+  ImGui::End();
 }
 
 // Render

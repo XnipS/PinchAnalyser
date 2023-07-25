@@ -3,6 +3,8 @@
 #include <string>
 #include <vector>
 
+#include "VectorMath.h"
+
 struct Colour3 {
   float r = 0;
   float b = 0;
@@ -26,6 +28,15 @@ struct FluidEngineSettings {
   double dragCoefficient = 0.47;
 };
 
+struct CircleSettings {
+  VM::Vector2 position = VM::Vector2(0, 0);
+  float radius = 1;
+  CircleSettings(VM::Vector2 pos, float rad) {
+    position = pos;
+    radius = rad;
+  };
+};
+
 class renderEngine {
  public:
   renderEngine();
@@ -34,6 +45,7 @@ class renderEngine {
   void Initialise(const char* title, int w, int h);
   void LinkSettings(FluidEngineSettings* set) { settings = set; };
   void UpdateImage(float* colours);
+  void LinkParticles(std::vector<CircleSettings>* newPos);
   void FloodImage(Colour3 col);
   void Update();
   void Render();

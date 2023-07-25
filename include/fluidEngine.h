@@ -14,6 +14,7 @@ class fluidParticle {
  public:
   VM::Vector2 position = *new VM::Vector2(0, 0);
   VM::Vector2 velocity = *new VM::Vector2(0, 0);
+  VM::Vector2 acceleration = *new VM::Vector2(0, 0);
   float mass = 0.02;      // kg
   float radius = 0.0003;  // m
   fluidParticle(double x, double y, double m, double r) {
@@ -36,10 +37,12 @@ class fluidEngine {
   void AddSandAtRnd();
   void AddSandAtPos(double x, double y);
   void SandToColour(float colours[]);
+  void LinkSandToMain(std::vector<CircleSettings>* newPositions);
   int SandCount() { return sand.size(); }
   FluidEngineSettings settings;
 
  private:
+  void CollisionUpdate();
   void Reflect(double* input);
   std::vector<fluidParticle> sand;
 };
