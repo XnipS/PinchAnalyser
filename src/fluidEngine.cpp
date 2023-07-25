@@ -23,7 +23,6 @@ double RandomRange(double fMin, double fMax) {
 void fluidEngine::AddSandAtPos(double x, double y) {
   fluidParticle particle =
       *new fluidParticle(x, y, settings.mass, settings.radius);
-  particle.velocity = startingVelocity;
   sand.push_back(particle);
 };
 
@@ -43,37 +42,81 @@ void fluidEngine::Start(renderEngine* ren) {
 void fluidEngine::Reflect(double* input) { *input *= -(1.0 - settings.dampen); }
 
 // Do collision check on all particles
-void fluidEngine::CollisionUpdate() {
+void fluidEngine::CollisionUpdate(fluidParticle* particle) {
   VM::Vector2 collisionAxis(0, 0);
-  for (int i = 0; i < sand.size(); i++) {
-    for (int j = 0; j < sand.size(); j++) {
-      if (i != j) {
-        double dist;
-        VectorDistance(&sand[i].position, &sand[j].position, &dist);
-        const double min_dist = sand[i].radius + sand[j].radius;
-        if (dist < min_dist) {
-          if (dist == 0) {
-            printf("Zero distance\n");
-            // distance = sand[i].radius + sand[j].radius;
-            continue;
-          }
 
-          VM::VectorSubtract(&collisionAxis, &sand[j].position,
-                             &sand[i].position);
-
-          VM::VectorNormalise(&collisionAxis);
-          const double delta = dist - (sand[i].radius + sand[j].radius);
-          VM::VectorScalarMultiply(&collisionAxis, &collisionAxis,
-                                   0.5f * delta);
-
-          VM::VectorSum(&sand[i].position, &sand[i].position, &collisionAxis);
-          VM::VectorSubtract(&sand[j].position, &sand[j].position,
-                             &collisionAxis);
-        }
+  for (int j = 0; j < sand.size(); j++) {
+    // if (*particle != sand[j]) {
+    double dist;
+    VectorDistance(&particle->position, &sand[j].position, &dist);
+    const double min_dist = particle->radius + sand[j].radius;
+    if (dist < min_dist) {
+      if (dist == 0) {
+        // printf("Zero distance\n");
+        //  distance = sand[i].radius + sand[j].radius;
+        continue;
       }
+
+      VM::VectorSubtract(&collisionAxis, &sand[j].position,
+                         &particle->position);
+
+      VM::VectorNormalise(&collisionAxis);
+      const double delta = (particle->radius + sand[j].radius) - dist;
+      VM::VectorScalarMultiply(&collisionAxis, &collisionAxis, 0.5f * delta);
+
+      VM::VectorSum(&sand[j].position, &sand[j].position, &collisionAxis);
+      VM::VectorSubtract(&particle->position, &particle->position,
+                         &collisionAxis);
     }
   }
+  //}
 }
+
+void fluidEngine::GravityUpdate(fluidParticle* particle) {
+  double magnitude;
+  VM::Vector2 new_acc(0, settings.gravity);
+  VM::Vector2 velocity(0, 0);
+  VM::VectorSubtract(&velocity, &particle->position, &particle->position_old);
+
+  VM::VectorMagnitude(&velocity, &magnitude);
+  VM::Vector2 drag_force(
+      0, 0.5 * particle->density() * particle->crossSectionalArea() *
+             settings.dragCoefficient * (magnitude * magnitude));
+  VM::VectorScalarDivide(&drag_force, &drag_force, particle->mass);
+  VM::VectorSubtract(&particle->acceleration, &new_acc, &drag_force);
+};
+
+void fluidEngine::ContainerUpdate(fluidParticle* particle) {
+  // Keep/collide in/with container
+  // Horizontal
+  if (particle->position.x < 0 + particle->radius) {
+    particle->position.x = particle->radius;
+  } else if (particle->position.x > (FB_CONTAINER_SIZE - particle->radius)) {
+    particle->position.x = (FB_CONTAINER_SIZE - particle->radius);
+  }
+  // Vertical
+  if (particle->position.y < 0 + particle->radius) {
+    particle->position.y = particle->radius;
+  } else if (particle->position.y > (FB_CONTAINER_SIZE - particle->radius)) {
+    particle->position.y = (FB_CONTAINER_SIZE - particle->radius);
+  }
+};
+void fluidEngine::PositionUpdate(fluidParticle* particle) {
+  VM::Vector2 velocity(0, 0);
+
+  VM::VectorSubtract(&velocity, &particle->position, &particle->position_old);
+
+  particle->position_old = particle->position;
+
+  VM::VectorScalarMultiply(&particle->acceleration, &particle->acceleration,
+                           FB_DELTATIME * FB_DELTATIME);
+
+  VM::VectorSum(&velocity, &velocity, &particle->acceleration);
+
+  VM::VectorSum(&particle->position, &particle->position, &velocity);
+
+  particle->acceleration = VM::Vector2(0, 0);
+};
 
 // Fluid engine tick
 void fluidEngine::Update() {
@@ -91,7 +134,7 @@ void fluidEngine::Update() {
   float energy = 0;
   for (int t = 0; t < sand.size(); t++) {
     double magnitude;
-    VectorMagnitude(&sand[t].velocity, &magnitude);
+    VectorMagnitude(&sand[t].position_old, &magnitude);
     energy += 0.5 * magnitude * magnitude;
   }
   if (renderer->currentDebugInfo.size() >= 2) {
@@ -117,71 +160,16 @@ void fluidEngine::Update() {
     renderer->currentDebugInfo.push_back("INCOMING!");
   }
 
-  // Physics steps
-  for (int i = 0; i < FB_MOLECULE_PHYSIC_STEPS; i++) {
-    CollisionUpdate();
-  }
-
   // Physics tick
   for (int i = 0; i < sand.size(); i++) {
-    // NEXT POSITION
-    VM::Vector2 new_pos(sand[i].position);
-    VM::Vector2 old_acc(sand[i].acceleration);
-    VM::Vector2 old_vel(sand[i].velocity);
-    VectorScalarMultiply(&old_acc, &old_acc,
-                         (0.5 * FB_DELTATIME * FB_DELTATIME));
-    VectorScalarMultiply(&old_vel, &old_vel, (FB_DELTATIME));
-    VectorSum(&new_pos, &new_pos, &old_acc);
-    VectorSum(&new_pos, &new_pos, &old_vel);
-
-    // NEXT ACCELERATION
-    VM::Vector2 new_acc(0, settings.gravity);
-    double magnitude;
-    VM::VectorMagnitude(&sand[i].velocity, &magnitude);
-    VM::Vector2 drag_force(
-        0, 0.5 * sand[i].density() * sand[i].crossSectionalArea() *
-               settings.dragCoefficient * (magnitude * magnitude));
-    VM::VectorScalarDivide(&drag_force, &drag_force, sand[i].mass);
-    VM::VectorSubtract(&new_acc, &new_acc, &drag_force);
-
-    // NEXT VELOCITY
-    VM::Vector2 new_vel(0, 0);
-    VectorSum(&new_vel, &sand[i].acceleration, &new_acc);
-    VM::VectorScalarMultiply(&new_vel, &new_vel, FB_DELTATIME * 0.5);
-    VectorSum(&new_vel, &new_vel, &sand[i].velocity);
-
-    // UPDATE
-    sand[i].position = new_pos;
-    sand[i].velocity = new_vel;
-    sand[i].acceleration = new_acc;
-
-    // Stop invalid velocities
-    if (sand[i].velocity.x > FB_CONTAINER_SIZE ||
-        sand[i].velocity.y > FB_CONTAINER_SIZE) {
-      printf("Weird velocity clamped!");
-      sand[i].velocity.x = 0;
-      sand[i].velocity.y = 0;
+    GravityUpdate(&sand[i]);
+    ContainerUpdate(&sand[i]);
+    // Physics steps
+    for (int x = 0; x < settings.collisionCalcCount; x++) {
+      CollisionUpdate(&sand[i]);
     }
 
-    // Keep/collide in/with container
-    // Horizontal
-    if (sand[i].position.x < 0 + sand[i].radius && sand[i].velocity.x < 0) {
-      sand[i].position.x = 0;
-      Reflect(&sand[i].velocity.x);
-    } else if (sand[i].position.x > (FB_CONTAINER_SIZE - sand[i].radius) &&
-               sand[i].velocity.x > 0) {
-      sand[i].position.x = FB_CONTAINER_SIZE;
-      Reflect(&sand[i].velocity.x);
-    }
-    // Vertical
-    if (sand[i].position.y < 0 + sand[i].radius && sand[i].velocity.y < 0) {
-      sand[i].position.y = 0;
-      Reflect(&sand[i].velocity.y);
-    } else if (sand[i].position.y > (FB_CONTAINER_SIZE - sand[i].radius) &&
-               sand[i].velocity.y > 0) {
-      sand[i].position.y = FB_CONTAINER_SIZE;
-      Reflect(&sand[i].velocity.y);
-    }
+    PositionUpdate(&sand[i]);
   }
 }
 

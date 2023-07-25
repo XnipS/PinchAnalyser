@@ -27,6 +27,7 @@ SDL_GLContext gl_context;
 ImGuiIO io;
 ImVec4 clear_color = ImVec4(0.45f, 0.55f, 0.60f, 1.00f);
 std::vector<CircleSettings>* sandRef;
+bool showOldRenderer = false;
 
 // Fluid image tank variables
 GLuint my_image_texture = 0;
@@ -124,28 +125,40 @@ void renderEngine::Update() {
   ImGui::Text("NIP-Engine");
   ImGui::Separator();
   ImGui::Text(FB_VERSION);
+  ImGui::Separator();
+  if (ImGui::BeginMenu("Options")) {
+    if (ImGui::Button("Toggle Old Renderer")) {
+      showOldRenderer = !showOldRenderer;
+    }
+    ImGui::EndMenu();
+  }
+  ImGui::Separator();
   ImGui::EndMainMenuBar();
 
   // Main Simulation
-  ImGui::Begin("Primary Renderer", NULL,
-               ImGuiWindowFlags_NoResize | ImGuiWindowFlags_AlwaysAutoResize |
-                   ImGuiWindowFlags_NoCollapse);
-  ImGui::Text("Size: %d x %d. Scale: 1 pixel = %f m. Tickrate: %d. Tick: %d.",
-              FB_CONTAINER_OUTPUT, FB_CONTAINER_OUTPUT,
-              (FB_CONTAINER_SIZE / FB_CONTAINER_OUTPUT), FB_TARGET_TICKRATE,
-              tick);
-  ImGui::Image((void*)(intptr_t)my_image_texture,
-               ImVec2(FB_CONTAINER_OUTPUT * FB_IMAGE_SCALE,
-                      FB_CONTAINER_OUTPUT * FB_IMAGE_SCALE));
-  ImGui::End();
+  if (showOldRenderer) {
+    ImGui::Begin("Old Renderer", NULL,
+                 ImGuiWindowFlags_NoResize | ImGuiWindowFlags_AlwaysAutoResize |
+                     ImGuiWindowFlags_NoCollapse);
+    ImGui::Text("Size: %d x %d. Scale: 1 pixel = %f m. Tickrate: %d. Tick: %d.",
+                FB_CONTAINER_OUTPUT, FB_CONTAINER_OUTPUT,
+                (FB_CONTAINER_SIZE / FB_CONTAINER_OUTPUT), FB_TARGET_TICKRATE,
+                tick);
+    ImGui::Image((void*)(intptr_t)my_image_texture,
+                 ImVec2(FB_CONTAINER_OUTPUT * FB_IMAGE_SCALE,
+                        FB_CONTAINER_OUTPUT * FB_IMAGE_SCALE));
+    ImGui::End();
+  }
 
   // Toolbox
   ImGui::Begin("Toolbox", NULL,
                ImGuiWindowFlags_NoResize | ImGuiWindowFlags_AlwaysAutoResize |
                    ImGuiWindowFlags_NoCollapse);
   ImGui::SliderFloat("Gravity (m/s/s)", &settings->gravity, 0, 10);
-  ImGui::SliderFloat("Dampen (%)", &settings->dampen, 0, 1);
+  ImGui::SliderInt("Collision Solver (-)", &settings->collisionCalcCount, 0,
+                   20);
   ImGui::BeginDisabled(true);
+  ImGui::SliderFloat("Dampen (%)", &settings->dampen, 0, 1);
   ImGui::SliderFloat("Heat", &settings->heat, 0, 1);
   ImGui::SliderInt("Fluid Holes", &settings->fluid_holes, 1, 51);
   ImGui::SliderFloat("Fluid Power", &settings->fluid_power, 0, 200);
@@ -202,7 +215,9 @@ void renderEngine::Update() {
     }
     ImGui::End();
   }
-  ImGui::Begin("Secondary Renderer", NULL,
+
+  // Primary Renderer
+  ImGui::Begin("Primary Renderer", NULL,
                ImGuiWindowFlags_NoResize | ImGuiWindowFlags_AlwaysAutoResize |
                    ImGuiWindowFlags_NoCollapse);
   ImVec2 p = ImGui::GetCursorScreenPos();
@@ -211,9 +226,17 @@ void renderEngine::Update() {
                                             ImVec2(p.x + scale, p.y + scale),
                                             IM_COL32(50, 50, 50, 255));
   for (int i = 0; i < sandRef->size(); i++) {
-    ImGui::GetWindowDrawList()->AddCircleFilled(
-        ImVec2(p.x + (*sandRef)[i].position.x, p.y + (*sandRef)[i].position.y),
-        (*sandRef)[i].radius, IM_COL32(255, 255, 255, 255), 0);
+    if (i != 0) {
+      ImGui::GetWindowDrawList()->AddCircleFilled(
+          ImVec2(p.x + (*sandRef)[i].position.x,
+                 p.y + (*sandRef)[i].position.y),
+          (*sandRef)[i].radius, IM_COL32(255, 255, 255, 255), 0);
+    } else {
+      ImGui::GetWindowDrawList()->AddCircleFilled(
+          ImVec2(p.x + (*sandRef)[i].position.x,
+                 p.y + (*sandRef)[i].position.y),
+          (*sandRef)[i].radius, IM_COL32(255, 0, 0, 255), 0);
+    }
   }
   ImGui::Dummy(ImVec2(scale, scale));
   ImGui::End();

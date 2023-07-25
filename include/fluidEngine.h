@@ -13,12 +13,13 @@
 class fluidParticle {
  public:
   VM::Vector2 position = *new VM::Vector2(0, 0);
-  VM::Vector2 velocity = *new VM::Vector2(0, 0);
+  VM::Vector2 position_old = *new VM::Vector2(0, 0);
   VM::Vector2 acceleration = *new VM::Vector2(0, 0);
   float mass = 0.02;      // kg
   float radius = 0.0003;  // m
   fluidParticle(double x, double y, double m, double r) {
     position = *new VM::Vector2(x, y);
+    position_old = *new VM::Vector2(x, y);
     mass = m;
     radius = r;
   }
@@ -42,7 +43,11 @@ class fluidEngine {
   FluidEngineSettings settings;
 
  private:
-  void CollisionUpdate();
+  void GravityUpdate(fluidParticle* particle);
+  void CollisionUpdate(fluidParticle* particle);
+  void ContainerUpdate(fluidParticle* particle);
+  void PositionUpdate(fluidParticle* particle);
+
   void Reflect(double* input);
   std::vector<fluidParticle> sand;
 };
