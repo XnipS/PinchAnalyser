@@ -76,6 +76,7 @@ void fluidEngine::GravityUpdate(fluidParticle* particle) {
   double magnitude;
   VM::Vector2 new_acc(0, 0);
 
+  // Gravity to bottom or centre
   if (settings.useNormalGravity) {
     new_acc.y = settings.gravity;
   } else {
@@ -85,6 +86,17 @@ void fluidEngine::GravityUpdate(fluidParticle* particle) {
     VM::VectorScalarMultiply(&new_acc, &new_acc, settings.gravity);
   }
 
+  // Fluid
+  static double scale = (FB_CONTAINER_OUTPUT - 1) / FB_CONTAINER_SIZE;
+  if (((int)std::round(particle->position.x * scale) %
+           (FB_CONTAINER_OUTPUT / settings.fluid_holes) ==
+       0)) {
+    new_acc.y -=
+        ((settings.fluid_power * settings.fluidDensity * particle->position.y) /
+         particle->mass);  // F = (rho * h * g) = ma
+  }
+
+  // Particle Drag
   VM::Vector2 velocity(0, 0);
   VM::VectorSubtract(&velocity, &particle->position, &particle->position_old);
 
@@ -120,12 +132,14 @@ void fluidEngine::PositionUpdate(fluidParticle* particle) {
   VM::VectorScalarMultiply(&particle->acceleration, &particle->acceleration,
                            FB_DELTATIME * FB_DELTATIME);  // a * t
 
-  VM::VectorSum(&velocity, &velocity, &particle->acceleration);  // v = at + v0
+  VM::VectorSum(&velocity, &velocity,
+                &particle->acceleration);  // v = at + v0
 
   VM::VectorSum(&particle->position, &particle->position,
                 &velocity);  // x = x0 + v
 
-  // VM::VectorScalarMultiply(&particle->acceleration, &particle->acceleration,
+  // VM::VectorScalarMultiply(&particle->acceleration,
+  // &particle->acceleration,
   //                          FB_DELTATIME * FB_DELTATIME);
 
   // VM::VectorSum(&velocity, &velocity, &particle->acceleration);
@@ -208,16 +222,16 @@ void fluidEngine::SandToColour(float colours[]) {
   for (int x = 0; x < (FB_CONTAINER_OUTPUT); x++) {
     for (int y = 0; y < (FB_CONTAINER_OUTPUT); y++) {
       // Visualise fluid holes
-      //   if ((x % (FB_CONTAINER_OUTPUT / settings.fluid_holes) == 0 &&
-      //        y == FB_CONTAINER_OUTPUT - 1)) {
-      //     colours[(y * FB_CONTAINER_OUTPUT * 3) + (x * 3)] = blue.r;
-      //     colours[(y * FB_CONTAINER_OUTPUT * 3) + (x * 3) + 1] = blue.b;
-      //     colours[(y * FB_CONTAINER_OUTPUT * 3) + (x * 3) + 2] = blue.g;
-      //   } else {
-      colours[(y * FB_CONTAINER_OUTPUT * 3) + (x * 3)] = grey.r;
-      colours[(y * FB_CONTAINER_OUTPUT * 3) + (x * 3) + 1] = grey.b;
-      colours[(y * FB_CONTAINER_OUTPUT * 3) + (x * 3) + 2] = grey.g;
-      //}
+      if ((x % (FB_CONTAINER_OUTPUT / settings.fluid_holes) == 0 &&
+           y == FB_CONTAINER_OUTPUT - 1)) {
+        colours[(y * FB_CONTAINER_OUTPUT * 3) + (x * 3)] = blue.r;
+        colours[(y * FB_CONTAINER_OUTPUT * 3) + (x * 3) + 1] = blue.b;
+        colours[(y * FB_CONTAINER_OUTPUT * 3) + (x * 3) + 2] = blue.g;
+      } else {
+        colours[(y * FB_CONTAINER_OUTPUT * 3) + (x * 3)] = grey.r;
+        colours[(y * FB_CONTAINER_OUTPUT * 3) + (x * 3) + 1] = grey.b;
+        colours[(y * FB_CONTAINER_OUTPUT * 3) + (x * 3) + 2] = grey.g;
+      }
     }
   }
 

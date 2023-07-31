@@ -160,12 +160,14 @@ void renderEngine::Update() {
   ImGui::SliderFloat("Gravity (m/s/s)", &settings->gravity, 0, 10);
   ImGui::SliderInt("Collision Solver (-)", &settings->collisionCalcCount, 0,
                    20);
-  ImGui::BeginDisabled(true);
-  ImGui::SliderFloat("Dampen (%)", &settings->dampen, 0, 1);
-  ImGui::SliderFloat("Heat", &settings->heat, 0, 1);
+  // ImGui::BeginDisabled(true);
+  // ImGui::SliderFloat("Dampen (%)", &settings->dampen, 0, 1);
+  // ImGui::SliderFloat("Heat", &settings->heat, 0, 1);
+  // ImGui::EndDisabled();
   ImGui::SliderInt("Fluid Holes", &settings->fluid_holes, 1, 51);
-  ImGui::SliderFloat("Fluid Power", &settings->fluid_power, 0, 200);
-  ImGui::EndDisabled();
+  ImGui::SliderFloat("Fluid Power (m/s/s)", &settings->fluid_power, 0, 2);
+  ImGui::InputDouble("Fluid Density (kg/m3)", &settings->fluidDensity);
+
   ImGui::End();
 
   // Sand Summoner
@@ -224,10 +226,10 @@ void renderEngine::Update() {
                ImGuiWindowFlags_NoResize | ImGuiWindowFlags_AlwaysAutoResize |
                    ImGuiWindowFlags_NoCollapse);
   ImVec2 p = ImGui::GetCursorScreenPos();
-  static double scale = FB_CONTAINER_OUTPUT * FB_IMAGE_SCALE_V2;
-  ImGui::GetWindowDrawList()->AddRectFilled(ImVec2(p.x, p.y),
-                                            ImVec2(p.x + scale, p.y + scale),
-                                            IM_COL32(50, 50, 50, 255));
+  static double max_size = FB_CONTAINER_OUTPUT * FB_IMAGE_SCALE_V2;
+  ImGui::GetWindowDrawList()->AddRectFilled(
+      ImVec2(p.x, p.y), ImVec2(p.x + max_size, p.y + max_size),
+      IM_COL32(50, 50, 50, 255));
   for (int i = 0; i < sandRef->size(); i++) {
     if (i != 0) {
       ImGui::GetWindowDrawList()->AddCircleFilled(
@@ -241,9 +243,22 @@ void renderEngine::Update() {
           (*sandRef)[i].radius, IM_COL32(255, 0, 0, 255), 0);
     }
   }
-  ImGui::Dummy(ImVec2(scale, scale));
+  static double scale =
+      ((FB_CONTAINER_OUTPUT - 1) / FB_CONTAINER_SIZE) * FB_IMAGE_SCALE_V2;
+
+  for (int i = 0; i < FB_CONTAINER_OUTPUT; i++) {
+    if (!(i % (FB_CONTAINER_OUTPUT / settings->fluid_holes))) {
+      ImGui::GetWindowDrawList()->AddRectFilled(
+          ImVec2(p.x + i * FB_IMAGE_SCALE_V2, p.y + max_size),
+          ImVec2((p.x + i * FB_IMAGE_SCALE_V2) + 5, p.y + max_size - 5),
+          IM_COL32(0, 0, 255, 255));
+    }
+  }
+
+  ImGui::Dummy(ImVec2(max_size, max_size));
   ImGui::End();
 
+  // Data Output
   ImGui::Begin("Data", NULL);
   if (ImPlot::BeginPlot("Red Particle Data")) {
     float time[settings->particle.GetMax()];
@@ -258,9 +273,19 @@ void renderEngine::Update() {
     for (int i = 0; i < settings->particle.GetMax(); i++) {
       data2[i] = settings->particle.GetStats()[i].vel_x;
     }
+    float data3[settings->particle.GetMax()];
+    for (int i = 0; i < settings->particle.GetMax(); i++) {
+      data3[i] = settings->particle.GetStats()[i].pos_y;
+    }
+    float data4[settings->particle.GetMax()];
+    for (int i = 0; i < settings->particle.GetMax(); i++) {
+      data4[i] = settings->particle.GetStats()[i].pos_x;
+    }
     ImPlot::PlotLine("Acceleration Y", time, data, settings->particle.GetMax());
     ImPlot::PlotLine("Acceleration X", time, data2,
                      settings->particle.GetMax());
+    ImPlot::PlotLine("Pos Y", time, data3, settings->particle.GetMax());
+    ImPlot::PlotLine("Pos X", time, data4, settings->particle.GetMax());
     ImPlot::EndPlot();
   }
   ImGui::End();

@@ -51,6 +51,7 @@ struct FluidEngineSettings {
   double dragCoefficient = 0.47;
   int collisionCalcCount = 10;
   bool useNormalGravity = true;
+  double fluidDensity = 1.204;
   FluidEngineParticleStats particle;
 };
 
