@@ -18,6 +18,7 @@
 #include "../depend/imgui/backends/imgui_impl_opengl3.h"
 #include "../depend/imgui/backends/imgui_impl_sdl2.h"
 #include "../depend/imgui/imgui.h"
+#include "../depend/implot/implot.h"
 #include "../include/core.h"
 
 renderEngine::renderEngine() {}
@@ -78,6 +79,7 @@ void renderEngine::Initialise(const char* title, int w, int h) {
   // Setup ImGui context
   IMGUI_CHECKVERSION();
   ImGui::CreateContext();
+  ImPlot::CreateContext();
   io = ImGui::GetIO();
   (void)io;
   // ImGui::GetIO().IniFilename = NULL;
@@ -130,6 +132,7 @@ void renderEngine::Update() {
     if (ImGui::Button("Toggle Old Renderer")) {
       showOldRenderer = !showOldRenderer;
     }
+    ImGui::Checkbox("Use normal gravity", &settings->useNormalGravity);
     ImGui::EndMenu();
   }
   ImGui::Separator();
@@ -240,6 +243,27 @@ void renderEngine::Update() {
   }
   ImGui::Dummy(ImVec2(scale, scale));
   ImGui::End();
+
+  ImGui::Begin("Data", NULL);
+  if (ImPlot::BeginPlot("Red Particle Data")) {
+    float time[settings->particle.GetMax()];
+    for (int i = 0; i < settings->particle.GetMax(); i++) {
+      time[i] = i;
+    }
+    float data[settings->particle.GetMax()];
+    for (int i = 0; i < settings->particle.GetMax(); i++) {
+      data[i] = settings->particle.GetStats()[i].vel_y;
+    }
+    float data2[settings->particle.GetMax()];
+    for (int i = 0; i < settings->particle.GetMax(); i++) {
+      data2[i] = settings->particle.GetStats()[i].vel_x;
+    }
+    ImPlot::PlotLine("Acceleration Y", time, data, settings->particle.GetMax());
+    ImPlot::PlotLine("Acceleration X", time, data2,
+                     settings->particle.GetMax());
+    ImPlot::EndPlot();
+  }
+  ImGui::End();
 }
 
 // Render
@@ -262,6 +286,7 @@ void renderEngine::Clean() {
   ImGui_ImplOpenGL3_Shutdown();
   // Clean Imgui
   ImGui_ImplSDL2_Shutdown();
+  ImPlot::DestroyContext();
   ImGui::DestroyContext();
   // Clean SDL
   SDL_GL_DeleteContext(gl_context);

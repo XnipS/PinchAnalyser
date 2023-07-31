@@ -5,3 +5,6 @@
 [submodule "depend/VectorMath"]
 	path = depend/VectorMath
 	url = https://github.com/XnipS/VectorMath.git
+[submodule "depend/implot"]
+	path = depend/implot
+	url = https://github.com/epezent/implot.git

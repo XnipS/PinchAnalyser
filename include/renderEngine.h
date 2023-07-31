@@ -16,17 +16,42 @@ struct Colour3 {
   }
 };
 
+struct ParticleStats {
+  double pos_x;
+  double pos_y;
+
+  double vel_x;
+  double vel_y;
+};
+
+class FluidEngineParticleStats {
+ private:
+  std::vector<ParticleStats> m_stats;
+  int m_max = 10;
+
+ public:
+  std::vector<ParticleStats> GetStats() const { return m_stats; }
+  int GetMax() const { return m_max; }
+  inline void AddParticle(ParticleStats* stat) {
+    m_stats.push_back(*stat);
+    if (m_stats.size() > m_max) {
+      m_stats.erase(m_stats.begin());
+    }
+  };
+};
+
 struct FluidEngineSettings {
   float gravity = 0.5;
   float dampen = 0.5;
   float heat = 0;
   int fluid_holes = 20;
   float fluid_power = 1;
-  float bounce_threshold = 0.1;
   double mass = 0.02;
   double radius = 0.0003;
   double dragCoefficient = 0.47;
   int collisionCalcCount = 10;
+  bool useNormalGravity = true;
+  FluidEngineParticleStats particle;
 };
 
 struct CircleSettings {

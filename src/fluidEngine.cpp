@@ -74,7 +74,17 @@ void fluidEngine::CollisionUpdate(fluidParticle* particle) {
 
 void fluidEngine::GravityUpdate(fluidParticle* particle) {
   double magnitude;
-  VM::Vector2 new_acc(0, settings.gravity);
+  VM::Vector2 new_acc(0, 0);
+
+  if (settings.useNormalGravity) {
+    new_acc.y = settings.gravity;
+  } else {
+    VM::Vector2 middle(FB_CONTAINER_SIZE / 2, FB_CONTAINER_SIZE / 2);
+    VM::VectorSubtract(&new_acc, &middle, &particle->position);
+    VM::VectorNormalise(&new_acc);
+    VM::VectorScalarMultiply(&new_acc, &new_acc, settings.gravity);
+  }
+
   VM::Vector2 velocity(0, 0);
   VM::VectorSubtract(&velocity, &particle->position, &particle->position_old);
 
@@ -103,19 +113,26 @@ void fluidEngine::ContainerUpdate(fluidParticle* particle) {
 };
 void fluidEngine::PositionUpdate(fluidParticle* particle) {
   VM::Vector2 velocity(0, 0);
-
-  VM::VectorSubtract(&velocity, &particle->position, &particle->position_old);
-
-  particle->position_old = particle->position;
+  VM::VectorSubtract(&velocity, &particle->position,
+                     &particle->position_old);  // delta_x
+  particle->position_old = particle->position;  // iterate x
 
   VM::VectorScalarMultiply(&particle->acceleration, &particle->acceleration,
-                           FB_DELTATIME * FB_DELTATIME);
+                           FB_DELTATIME * FB_DELTATIME);  // a * t
 
-  VM::VectorSum(&velocity, &velocity, &particle->acceleration);
+  VM::VectorSum(&velocity, &velocity, &particle->acceleration);  // v = at + v0
 
-  VM::VectorSum(&particle->position, &particle->position, &velocity);
+  VM::VectorSum(&particle->position, &particle->position,
+                &velocity);  // x = x0 + v
 
-  particle->acceleration = VM::Vector2(0, 0);
+  // VM::VectorScalarMultiply(&particle->acceleration, &particle->acceleration,
+  //                          FB_DELTATIME * FB_DELTATIME);
+
+  // VM::VectorSum(&velocity, &velocity, &particle->acceleration);
+
+  // VM::VectorSum(&particle->position, &particle->position, &velocity);
+
+  // particle->acceleration = VM::Vector2(0, 0);
 };
 
 // Fluid engine tick
@@ -168,9 +185,16 @@ void fluidEngine::Update() {
     for (int x = 0; x < settings.collisionCalcCount; x++) {
       CollisionUpdate(&sand[i]);
     }
-
     PositionUpdate(&sand[i]);
   }
+
+  // Update current sand stats
+  ParticleStats p;
+  p.pos_x = sand[0].position.x;
+  p.pos_y = sand[0].position.y;
+  p.vel_x = sand[0].acceleration.x;
+  p.vel_y = sand[0].acceleration.y;
+  settings.particle.AddParticle(&p);
 }
 
 // Encode sand data to colour data
