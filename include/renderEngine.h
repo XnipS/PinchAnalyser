@@ -52,16 +52,6 @@ struct FluidEngineSettings {
   int collisionCalcCount = 10;
   bool useNormalGravity = true;
   double fluidDensity = 1.204;
-  FluidEngineParticleStats particle;
-};
-
-struct CircleSettings {
-  VM::Vector2 position = VM::Vector2(0, 0);
-  float radius = 1;
-  CircleSettings(VM::Vector2 pos, float rad) {
-    position = pos;
-    radius = rad;
-  };
 };
 
 class renderEngine {
@@ -71,22 +61,15 @@ class renderEngine {
 
   void Initialise(const char* title, int w, int h);
   void LinkSettings(FluidEngineSettings* set) { settings = set; };
-  void UpdateImage(float* colours);
-  void LinkParticles(std::vector<CircleSettings>* newPos);
-  void FloodImage(Colour3 col);
+
   void Update();
   void Render();
   void Clean();
   bool Running() { return isRunning; };
   std::vector<std::string> currentDebugInfo;
-  int val_totalSand;
-  int AddSand() { return addSand; };
-  bool ClearSand() { return clearAllSand; };
 
  private:
   FluidEngineSettings* settings;
   int tick = 0;
   bool isRunning;
-  int addSand = 0;
-  bool clearAllSand = false;
 };

@@ -1,6 +1,6 @@
 # Infomation
 cmake_minimum_required(VERSION 3.5)
-project(FluidisedBed LANGUAGES CXX)
+project(Dinger LANGUAGES CXX)
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 # Glob files
@@ -38,12 +38,12 @@ target_include_directories(imgui PUBLIC SDL2 SDL2main)
 # BUILD implot
 add_library(implot STATIC ${IMPLOT_PATH})
 # BUILD FluidisedBed Lib
-add_library(FluidisedBed SHARED
+add_library(Dinger SHARED
 ${SOURCE_FILES}
 ${HEADER_FILES}
 )
-target_include_directories(FluidisedBed PRIVATE imgui ${SDL2_INCLUDE_DIRS} ${VM_PATH})
+target_include_directories(Dinger PRIVATE imgui ${SDL2_INCLUDE_DIRS} ${VM_PATH})
 # BUILD Main Simulator Executable
 add_executable(Simulator src/main.cpp)
 target_include_directories(Simulator PRIVATE ${SDL2_INCLUDE_DIRS} ${VM_PATH})
-target_link_libraries(Simulator PUBLIC SDL2 FluidisedBed imgui OpenGL implot)
+target_link_libraries(Simulator PUBLIC SDL2 Dinger imgui OpenGL implot)
