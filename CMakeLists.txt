@@ -38,12 +38,12 @@ target_include_directories(imgui PUBLIC SDL2 SDL2main)
 # BUILD implot
 add_library(implot STATIC ${IMPLOT_PATH})
 # BUILD FluidisedBed Lib
-add_library(Dinger SHARED
+add_library(Exchanger SHARED
 ${SOURCE_FILES}
 ${HEADER_FILES}
 )
-target_include_directories(Dinger PRIVATE imgui ${SDL2_INCLUDE_DIRS} ${VM_PATH})
+target_include_directories(Exchanger PRIVATE imgui ${SDL2_INCLUDE_DIRS} ${VM_PATH})
 # BUILD Main Simulator Executable
 add_executable(Simulator src/main.cpp)
 target_include_directories(Simulator PRIVATE ${SDL2_INCLUDE_DIRS} ${VM_PATH})
-target_link_libraries(Simulator PUBLIC SDL2 Dinger imgui OpenGL implot)
+target_link_libraries(Simulator PUBLIC SDL2 Exchanger imgui OpenGL implot)

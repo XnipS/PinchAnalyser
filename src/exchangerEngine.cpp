@@ -1,4 +1,4 @@
-#include "../include/dingerEngine.h"
+#include "../include/exchangerEngine.h"
 
 #include <cmath>
 #include <cstdio>
@@ -8,13 +8,13 @@
 #include "../include/renderEngine.h"
 #include "VectorMath.h"
 
-dingerEngine::dingerEngine(){};
-dingerEngine::~dingerEngine(){};
+exchangerEngine::exchangerEngine(){};
+exchangerEngine::~exchangerEngine(){};
 
 renderEngine* renderer;
 
 // Initialise fluid engine
-void dingerEngine::Start(renderEngine* ren) {
+void exchangerEngine::Start(renderEngine* ren) {
   printf("Fluid Engine Initialised\n");
   renderer = ren;
 };

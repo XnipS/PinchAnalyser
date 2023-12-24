@@ -5,11 +5,11 @@
 #include <thread>
 
 #include "../include/core.h"
-#include "../include/dingerEngine.h"
+#include "../include/exchangerEngine.h"
 #include "../include/renderEngine.h"
 
 renderEngine *render = nullptr;
-dingerEngine *dinger = nullptr;
+exchangerEngine *exchanger = nullptr;
 
 Uint32 frameStart;
 int currentTickTime;
@@ -18,12 +18,12 @@ int currentTickTime;
 int main(int argc, char *args[]) {
   // Engines
   render = new renderEngine();
-  dinger = new dingerEngine();
+  exchanger = new exchangerEngine();
 
   // Start
-  render->Initialise("Schrödinger Calculator", 1280, 720);
-  dinger->Start(render);
-  render->LinkSettings(&dinger->settings);
+  render->Initialise("Exchanger Calculator", 1280, 720);
+  exchanger->Start(render);
+  render->LinkSettings(&exchanger->settings);
 
   // Tick loop
   while (render->Running()) {

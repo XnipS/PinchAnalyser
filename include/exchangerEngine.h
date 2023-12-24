@@ -10,10 +10,10 @@
 
 #include "renderEngine.h"
 
-class dingerEngine {
+class exchangerEngine {
  public:
-  dingerEngine();
-  ~dingerEngine();
+  exchangerEngine();
+  ~exchangerEngine();
   void Start(renderEngine* ren);
   void Update();
   FluidEngineSettings settings;
