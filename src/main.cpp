@@ -22,8 +22,6 @@ int main(int argc, char *args[]) {
 
   // Start
   render->Initialise("Exchanger Calculator", 1280, 720);
-  exchanger->Start(render);
-  render->LinkSettings(&exchanger->settings);
 
   // Tick loop
   while (render->Running()) {

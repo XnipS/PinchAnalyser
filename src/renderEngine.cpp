@@ -1,5 +1,6 @@
 #include "../include/renderEngine.h"
 
+#include <string>
 #include <vector>
 
 #if defined(_WIN64)
@@ -89,51 +90,110 @@ void renderEngine::Update() {
   ImGui::Separator();
   ImGui::Text(D_VERSION);
   ImGui::Separator();
-  ImGui::Separator();
+  // ImGui::Separator();
   ImGui::EndMainMenuBar();
 
-  // Toolbox
-  ImGui::Begin("Toolbox", NULL,
+  // Stream inputs
+  ImGui::Begin("Input", NULL,
                ImGuiWindowFlags_NoResize | ImGuiWindowFlags_AlwaysAutoResize |
                    ImGuiWindowFlags_NoCollapse);
-  ImGui::SliderFloat("Gravity (m/s/s)", &settings->gravity, 0, 10);
-  ImGui::SliderInt("Collision Solver (-)", &settings->collisionCalcCount, 0,
-                   20);
-  // ImGui::BeginDisabled(true);
-  // ImGui::SliderFloat("Dampen (%)", &settings->dampen, 0, 1);
-  // ImGui::SliderFloat("Heat", &settings->heat, 0, 1);
-  // ImGui::EndDisabled();
-  ImGui::SliderInt("Fluid Holes", &settings->fluid_holes, 1, 51);
-  ImGui::SliderFloat("Fluid Power (m/s/s)", &settings->fluid_power, 0, 2);
-  ImGui::InputDouble("Fluid Density (kg/m3)", &settings->fluidDensity);
 
+  static ImGuiTableFlags flags = ImGuiTableFlags_Borders |
+                                 ImGuiTableFlags_RowBg |
+                                 ImGuiTableFlags_Resizable;
+  if (ImGui::BeginTable("Streams", 7, flags)) {
+    ImGui::TableSetupColumn("Stream");
+    ImGui::TableSetupColumn("Type");
+    ImGui::TableSetupColumn("T_initial");
+    ImGui::TableSetupColumn("T_target");
+    ImGui::TableSetupColumn("Cx");
+    ImGui::TableSetupColumn("deltaH_Hot");
+    ImGui::TableSetupColumn("deltaH_Cold");
+    ImGui::TableHeadersRow();
+    static int contents_type = 0;
+    static float contents_typef = 0;
+    std::string label;
+    for (int row = 0; row < inputStreams.size(); row++) {
+      ImGui::TableNextRow();
+      for (int column = 0; column < 7; column++) {
+        ImGui::TableSetColumnIndex(column);
+        switch (column) {
+          case 0:
+            ImGui::Text("%i", row + 1);
+            break;
+          case 1:
+
+            if (inputStreams[row].temp_initial >
+                inputStreams[row].temp_target) {
+              label = "hot";
+            } else {
+              label = "cold";
+            }
+            ImGui::Text("%s", label.c_str());
+            break;
+          case 2:
+            label = "##Initial_";
+            label.append(std::to_string(row));
+            ImGui::InputInt(label.c_str(), &inputStreams[row].temp_initial, 0,
+                            0);
+            break;
+          case 3:
+            label = "##Target_";
+            label.append(std::to_string(row));
+            ImGui::InputInt(label.c_str(), &inputStreams[row].temp_target, 0,
+                            0);
+            break;
+          case 4:
+            label = "##Cx_";
+            label.append(std::to_string(row));
+            ImGui::InputFloat(label.c_str(), &inputStreams[row].cx, 0, 0);
+            break;
+          case 5:
+            if (inputStreams[row].temp_initial >
+                inputStreams[row].temp_target) {
+              // hot
+              label = std::to_string(inputStreams[row].cx *
+                                     (inputStreams[row].temp_target -
+                                      inputStreams[row].temp_initial));
+            } else {
+              // cold
+              label = std::to_string(0);
+            }
+            ImGui::Text("%s", label.c_str());
+            break;
+          case 6:
+            if (inputStreams[row].temp_initial <
+                inputStreams[row].temp_target) {
+              // cold
+              label = std::to_string(inputStreams[row].cx *
+                                     (inputStreams[row].temp_target -
+                                      inputStreams[row].temp_initial));
+            } else {
+              // hot
+              label = std::to_string(0);
+            }
+            ImGui::Text("%s", label.c_str());
+            break;
+        }
+      }
+    }
+    ImGui::EndTable();
+  }
+
+  if (ImGui::Button("Add Stream")) {
+    inputStream str;
+    inputStreams.push_back(str);
+  }
+  ImGui::SameLine();
+
+  ImGui::BeginDisabled(inputStreams.size() == 0);
+  if (ImGui::Button("Remove Stream")) {
+    inputStreams.pop_back();
+  }
+  ImGui::EndDisabled();
   ImGui::End();
 
-  // Top left Overlay
-  if (currentDebugInfo.size() > 0) {
-    ImGui::SetNextWindowBgAlpha(0.35f);
-    const float PAD = 10.0f;
-    const ImGuiViewport* viewport = ImGui::GetMainViewport();
-    ImVec2 work_pos = viewport->WorkPos;
-    ImVec2 work_size = viewport->WorkSize;
-    ImVec2 window_pos, window_pos_pivot;
-    window_pos.x = (work_pos.x + 10);
-    window_pos.y = (work_pos.y + 10);
-    window_pos_pivot.x = 0.0f;
-    window_pos_pivot.y = 0.0f;
-    ImGui::SetNextWindowPos(window_pos, ImGuiCond_Always, window_pos_pivot);
-    ImGui::Begin("Debug", NULL,
-                 ImGuiWindowFlags_NoDecoration |
-                     ImGuiWindowFlags_AlwaysAutoResize |
-                     ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoNav |
-                     ImGuiWindowFlags_NoFocusOnAppearing |
-                     ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoDocking);
-    ImGui::Text("Debug");
-    for (int i = 0; i < currentDebugInfo.size(); i++) {
-      ImGui::Text("%s", currentDebugInfo[i].c_str());
-    }
-    ImGui::End();
-  }
+  // ImGui::ShowDemoWindow();
 }
 
 // Render
